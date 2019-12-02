@@ -3,3 +3,4 @@ velocity.log
 velocity.log.1
 debug.log
 *.csv
+parameters_backup.xml

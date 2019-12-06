@@ -24,7 +24,8 @@ public class ChordBuilder implements ContextBuilder<Object> {
 				new RandomCartesianAdder<Object>(), new repast.simphony.space.continuous.WrapAroundBorders(), 50, 50);
 		
 		Parameters params = RunEnvironment.getInstance().getParameters();
-		int num_nodes = params.getInteger("num_nodes");
+		int NUM_NODES = params.getInteger("num_nodes");
+		int FINGER_TABLE_SIZE = (int) (Math.log(NUM_NODES)/Math.log(2));
 		
 		double spaceSize = space.getDimensions().getHeight();
 	    double center = spaceSize / 2;
@@ -35,14 +36,14 @@ public class ChordBuilder implements ContextBuilder<Object> {
 	    
 	    HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
 	    
-	    for (int i = 0; i < num_nodes; i++) {
+	    for (int i = 0; i < NUM_NODES; i++) {
 	    	int id = rnd.nextInt(spaceDimension);
 	    	
 	    	while(nodes.containsKey(id)) {
 	    		id = rnd.nextInt(spaceDimension);
 	    	}
 	    	
-	    	Node node = new Node(id);
+	    	Node node = new Node(id, FINGER_TABLE_SIZE);
 	    	nodes.put(id, node);
 	    	context.add(node);
 	    	

@@ -14,28 +14,32 @@ public class ChordNode {
 	private Integer SPACEDIMENSION = 20000;
 	HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
 	
+	int FINGER_TABLE_SIZE;
+	
 	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes) {
 		this.context = context;
 		this.space = space;
 		this.num_nodes = num_nodes;
+		this.FINGER_TABLE_SIZE = (int) (Math.log(num_nodes)/Math.log(2));
+		
+		createInitialNetwork();
 	}
 	
 	private void createInitialNetwork() {
 	    Random rnd = new Random(); // Java random, approximately uniform distributed
 	   
-	    
 	    for (int i = 0; i < num_nodes; i++) {
-	    	int id = rnd.nextInt(spaceDimension);
+	    	int id = rnd.nextInt(SPACEDIMENSION);
 	    	
 	    	while(nodes.containsKey(id)) {
-	    		id = rnd.nextInt(spaceDimension);
+	    		id = rnd.nextInt(SPACEDIMENSION);
 	    	}
 	    	
-	    	Node node = new Node(id);
+	    	Node node = new Node(id, FINGER_TABLE_SIZE);
 	    	nodes.put(id, node);
 	    	context.add(node);
 	    	
-	    	
+	    	visualizeNode(node);
 	    }
 	}
 	
@@ -44,7 +48,7 @@ public class ChordNode {
 	    double center = spaceSize / 2;
 	    double radius = center / 2;
 	    
-	    double theta = 2 * Math.PI * node. / spaceDimension;
+	    double theta = 2 * Math.PI * node.getId() / SPACEDIMENSION;
         double x = center + radius * Math.cos(theta);
         double y = center + radius * Math.sin(theta);
         space.moveTo(node, x, y);

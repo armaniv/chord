@@ -6,36 +6,59 @@ public class Node {
 	private Integer successor;
 	private Integer predecessor;
 	
-	public Node() {
-		
+	public Node(Integer id, Integer FINGER_TABLE_SIZE) {
+		this.setId(id);
+		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 	}
 	
-	public Node(Integer id) {
-		this.id = id;
+	public void receive(Message message) {
+		switch (message.getType()) {
+		case LOOKUP:
+			
+			break;
+
+		default:
+			// nothing for now (maybe for ever)
+			break;
+		}
+	}
+	
+	public void findSuccessor(Integer id) {
+		if (id > this.getId() && id <= this.successor) {
+			// I have found who stores that key
+		}
 	}
 
-	private Integer[] getFingerTable() {
+	public Integer[] getFingerTable() {
 		return fingerTable;
 	}
 
-	private void setFingerTable(Integer[] fingerTable) {
+	public void setFingerTable(Integer[] fingerTable) {
 		this.fingerTable = fingerTable;
 	}
 
-	private Integer getSuccessor() {
+	public Integer getSuccessor() {
 		return successor;
 	}
 
-	private void setSuccessor(Integer successor) {
+	public void setSuccessor(Integer successor) {
 		this.successor = successor;
 	}
 
-	private Integer getPredecessor() {
+	public Integer getPredecessor() {
 		return predecessor;
 	}
 
-	private void setPredecessor(Integer predecessor) {
+	public void setPredecessor(Integer predecessor) {
 		this.predecessor = predecessor;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 }

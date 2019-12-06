@@ -26,31 +26,8 @@ public class ChordBuilder implements ContextBuilder<Object> {
 		Parameters params = RunEnvironment.getInstance().getParameters();
 		int num_nodes = params.getInteger("num_nodes");
 		
-		double spaceSize = space.getDimensions().getHeight();
-	    double center = spaceSize / 2;
-	    double radius = center / 2;
-	    
-	    Random rnd = new Random(); // Java random, approximately uniform distributed
-	    int spaceDimension = 10000; // the interval from which node id are extracted
-	    
-	    HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
-	    
-	    for (int i = 0; i < num_nodes; i++) {
-	    	int id = rnd.nextInt(spaceDimension);
-	    	
-	    	while(nodes.containsKey(id)) {
-	    		id = rnd.nextInt(spaceDimension);
-	    	}
-	    	
-	    	Node node = new Node(id);
-	    	nodes.put(id, node);
-	    	context.add(node);
-	    	
-	    	double theta = 2 * Math.PI * id / spaceDimension;
-	        double x = center + radius * Math.cos(theta);
-	        double y = center + radius * Math.sin(theta);
-	        space.moveTo(node, x, y);
-	    }
+		ChordNode chordNode = new ChordNode(context, space, num_nodes);
+		
 	    
 		return context;
 		

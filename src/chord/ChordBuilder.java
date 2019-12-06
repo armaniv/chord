@@ -1,8 +1,5 @@
 package chord;
 
-import java.util.HashMap;
-import java.util.Random;
-
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
@@ -24,10 +21,10 @@ public class ChordBuilder implements ContextBuilder<Object> {
 				new RandomCartesianAdder<Object>(), new repast.simphony.space.continuous.WrapAroundBorders(), 50, 50);
 		
 		Parameters params = RunEnvironment.getInstance().getParameters();
-		int num_nodes = params.getInteger("num_nodes");
-		
-		
-		ChordNode chordNode = new ChordNode(context, space, num_nodes);
+		int num_init_nodes = params.getInteger("num_init_nodes");
+		int num_total_nodes = params.getInteger("num_total_nodes");
+				
+		ChordNode chordNode = new ChordNode(context, space, num_init_nodes, num_total_nodes);
 		
 		return context;
 	}

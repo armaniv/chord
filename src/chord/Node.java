@@ -5,16 +5,16 @@ public class Node {
 	private Integer[] fingerTable;
 	private Integer successor;
 	private Integer predecessor;
-	
+
 	public Node(Integer id, Integer FINGER_TABLE_SIZE) {
 		this.setId(id);
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 	}
-	
+
 	public void receive(Message message) {
 		switch (message.getType()) {
 		case LOOKUP:
-			
+
 			break;
 
 		default:
@@ -22,11 +22,43 @@ public class Node {
 			break;
 		}
 	}
-	
-	public void findSuccessor(Integer id) {
-		if (id > this.getId() && id <= this.successor) {
-			// I have found who stores that key
+
+	public Integer findSuccessor(Integer serchedId) {
+		//// !!!!!!! --- successor contained inside the interval?????
+		if (insideInterval(serchedId, this.id, successor)) {
+			return successor;
 		}
+		else
+		{
+			Integer cpNode = closestPrecedingNode(serchedId);
+			return cpNode;
+		}
+	}
+
+	public Integer closestPrecedingNode(Integer serchedId) {
+		for (int i = fingerTable.length - 1; i >= 0; i--) {
+			int entry = fingerTable[i];
+			
+			if (insideInterval(entry, this.id, serchedId)) {
+				return entry;
+			}
+		}
+		return this.id;
+	}
+
+	private boolean insideInterval(Integer id, Integer a, Integer b) {
+		
+		if (id > a && id < b) {
+			return true;
+		}
+		if (id < a && a > b && id < b) {
+			return true;
+		}
+		if (id > b && a > b && id > a) {
+			return true;
+		}
+		
+		return false;
 	}
 
 	public Integer[] getFingerTable() {

@@ -77,10 +77,6 @@ public class Node {
 		return false;
 	}
 
-	public void startLookup(Integer lookupKey) {
-		Message msg = new Message(MessageType.LOOKUP, lookupKey);
-		receive(msg);
-	}
 	
 	private void signalKeyFoundAt(Integer nodeId) {
 		this.masterNode.receiveLookupResult(this.processedMessage, nodeId);

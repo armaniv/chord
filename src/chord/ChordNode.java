@@ -107,14 +107,15 @@ public class ChordNode {
 		space.moveTo(node, x, y);
 	}
 	
-	@ScheduledMethod(start = 1, interval = 0)
+	@ScheduledMethod(start = 1, interval = 5)
 	public void generateLookup() {
 		int selectedNode = rnd.nextInt(nodes.size() - 1);
 		Integer[] nodes = new Integer[this.nodes.size()];
 		nodes = this.nodes.keySet().toArray(nodes);
 		Node node = this.nodes.get(nodes[selectedNode]);
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		node.startLookup(lookupKey);
+		Message msg = new Message(MessageType.LOOKUP, lookupKey);
+		node.receive(msg);
 	}
 	
 	public void receiveLookupResult(Message message, Integer receiverId) {

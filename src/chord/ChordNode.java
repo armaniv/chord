@@ -1,9 +1,12 @@
 package chord;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
 import repast.simphony.context.Context;
+import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.continuous.ContinuousSpace;
 
 public class ChordNode {
@@ -53,6 +56,15 @@ public class ChordNode {
         double y = center + radius * Math.sin(theta);
         space.moveTo(node, x, y);
 	    
+	}
+	
+	@ScheduledMethod(start = 3, interval = 0)
+	public void generateLookup() {
+		int randomKey = RandomHelper.nextIntFromTo(0, this.SPACEDIMENSION-1);
+		ArrayList<Integer> nodes = new ArrayList<Integer>(this.nodes.keySet());
+		int randomNodeKey = nodes.get(RandomHelper.nextIntFromTo(0, nodes.size()));
+		Node randomNode = this.nodes.get(randomNodeKey);
+		Message lookupMessage = new Message(MessageType.LOOKUP);
 	}
 	
 	

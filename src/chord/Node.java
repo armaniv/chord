@@ -24,8 +24,8 @@ public class Node {
 	}
 
 	public Integer findSuccessor(Integer serchedId) {
-		//// !!!!!!! --- successor contained inside the interval?????
-		if (insideInterval(serchedId, this.id, successor)) {
+		// successor contained inside the interval (add + 1 to successor)
+		if (insideInterval(serchedId, this.id, successor + 1)) {
 			return successor;
 		}
 		else
@@ -46,15 +46,14 @@ public class Node {
 		return this.id;
 	}
 
-	private boolean insideInterval(Integer id, Integer a, Integer b) {
-		
-		if (id > a && id < b) {
+	private boolean insideInterval(Integer value, Integer a, Integer b) {
+		if (value > a && value < b) {
 			return true;
 		}
-		if (id < a && a > b && id < b) {
+		if (value < a && a > b && value < b) {
 			return true;
 		}
-		if (id > b && a > b && id > a) {
+		if (value > b && a > b && value > a) {
 			return true;
 		}
 		

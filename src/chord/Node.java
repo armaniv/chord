@@ -7,6 +7,7 @@ public class Node {
 	private Integer predecessor;
 	private Router router;
 	private ChordNode masterNode;
+	private Message processedMessage;
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode) {
 		this.id = id;
@@ -16,34 +17,46 @@ public class Node {
 	}
 
 	public void receive(Message message) {
+		this.processedMessage = message;
+		this.processedMessage.incrementReceivers();
+		
 		switch (message.getType()) {
-		case LOOKUP:
-
-			break;
-
-		default:
-			// nothing for now (maybe for ever)
-			break;
+			case LOOKUP:
+				this.onLookup(message);
+				break;
+	
+			default:
+				// nothing for now (maybe for ever)
+				break;
+		}
+	}
+	
+	public void onLookup(Message message) {
+		Integer successor = findSuccessor(message.getLookupKey());
+		if (successor != null) {
+			signalKeyFoundAt(successor);
 		}
 	}
 
-	public Integer findSuccessor(Integer serchedId) {
+	public Integer findSuccessor(Integer id) {
 		// successor contained inside the interval (add + 1 to successor)
-		if (insideInterval(serchedId, this.id, successor + 1)) {
+		if (insideInterval(id, this.id, successor + 1)) {
 			return successor;
 		}
 		else
 		{
-			Integer cpNode = closestPrecedingNode(serchedId);
-			return cpNode;
+			Integer cpNode = closestPrecedingNode(id);
+			// this node doesn't have the key -> forward LOOKUP message
+			this.router.send(this.processedMessage, this.id, cpNode);
+			return null;
 		}
 	}
 
-	public Integer closestPrecedingNode(Integer serchedId) {
+	public Integer closestPrecedingNode(Integer id) {
 		for (int i = fingerTable.length - 1; i >= 0; i--) {
 			int entry = fingerTable[i];
 			
-			if (insideInterval(entry, this.id, serchedId)) {
+			if (insideInterval(entry, this.id, id)) {
 				return entry;
 			}
 		}
@@ -66,10 +79,11 @@ public class Node {
 
 	public void startLookup(Integer lookupKey) {
 		Message msg = new Message(MessageType.LOOKUP, lookupKey);
-		Integer destination = findSuccessor(lookupKey);
-		
-		System.out.println(String.format("%02d[%02d] -> %03d", this.id, lookupKey, destination));
-		this.router.send(msg, this.id, destination);
+		receive(msg);
+	}
+	
+	private void signalKeyFoundAt(Integer nodeId) {
+		this.masterNode.receiveLookupResult(this.processedMessage, nodeId);
 	}
 	
 	

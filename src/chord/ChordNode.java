@@ -48,8 +48,6 @@ public class ChordNode {
 		
 		this.router.setNodes(nodes);
 		createInitialFingerTables();
-		int a = 0;
-		int b = a;
 	}
 
 	private void createInitialFingerTables() {
@@ -120,6 +118,6 @@ public class ChordNode {
 	}
 	
 	public void receiveLookupResult(Message message, Integer receiverId) {
-		System.out.println("Key " + message.getKey() + " found at Node " + receiverId);
+		System.out.println("Key " + message.getLookupKey() + " found at Node " + receiverId);
 	}
 }

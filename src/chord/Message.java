@@ -2,11 +2,13 @@ package chord;
 
 public class Message {
 	private MessageType type;
-	private Integer key;
+	private Integer lookupKey;
+	private Integer receiversCount;
 	
-	public Message(MessageType type, Integer key) {
+	public Message(MessageType type, Integer lookupKey) {
 		this.type = type;
-		this.key = key;
+		this.lookupKey = lookupKey;
+		this.receiversCount = 0;
 	}
 
 	public MessageType getType() {
@@ -17,11 +19,15 @@ public class Message {
 		this.type = type;
 	}
 
-	public Integer getKey() {
-		return key;
+	public Integer getLookupKey() {
+		return lookupKey;
 	}
 
-	public void setKey(Integer successor) {
-		this.key = successor;
+	public void setlookupKey(Integer key) {
+		this.lookupKey = key;
+	}
+	
+	public void incrementReceivers() {
+		this.receiversCount++;
 	}
 }

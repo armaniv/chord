@@ -22,11 +22,11 @@ public class Router {
 		}
 	}
 	
-	public void send(Message msg, Integer sourceNodeId, Integer destinationNodeId) {
+	public void send(Message message, Integer sourceNodeId, Integer destinationNodeId) {
 		
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-		ScheduleParameters scheduleParameters = ScheduleParameters.createOneTime(schedule.getTickCount() + 1, PriorityType.RANDOM);
-		schedule.schedule(scheduleParameters,
-				new ReceiveMessage(sourceNodeId, destinationNodeId, msg, this));
+		ScheduleParameters scheduleParameters = 
+				ScheduleParameters.createOneTime(schedule.getTickCount() + 1, PriorityType.RANDOM);
+		schedule.schedule(scheduleParameters, new ReceiveMessage(nodes.get(destinationNodeId), message));
 	}
 }

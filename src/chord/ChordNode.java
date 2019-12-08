@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import repast.simphony.context.Context;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 
 public class ChordNode {
@@ -16,7 +17,9 @@ public class ChordNode {
 	private ContinuousSpace<Object> space;
 	private Integer SPACEDIMENSION = 64;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
-
+	private Random rnd; // Java random, approximately uniform distributed
+	private Router router;
+	
 	private Integer num_total_nodes;
 	HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
 
@@ -24,13 +27,14 @@ public class ChordNode {
 		this.context = context;
 		this.space = space;
 		this.num_total_nodes = num_total_nodes;
+		
+		this.rnd = new Random();
+		this.router = new Router();
 
 		createInitialNetwork(num_init_nodes);
 	}
 
 	private void createInitialNetwork(int num_init_nodes) {
-		Random rnd = new Random(); // Java random, approximately uniform distributed
-
 		for (int i = 0; i < num_init_nodes; i++) {
 			int id = rnd.nextInt(SPACEDIMENSION);
 
@@ -38,12 +42,13 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 
-			Node node = new Node(id, FINGER_TABLE_SIZE);
-			nodes.put(id, node);
-			context.add(node);
+			Node node = new Node(id, FINGER_TABLE_SIZE,router);
+			this.nodes.put(id, node);
+			this.context.add(node);
 			visualizeNode(node);
 		}
-
+		
+		this.router.setNodes(nodes);
 		createInitialFingerTables();
 	}
 
@@ -73,6 +78,9 @@ public class ChordNode {
 
 			// System.out.println(id + ": " + Arrays.toString(fingerTable));
 			node.setFingerTable(fingerTable);
+			node.setSuccessor(fingerTable[0]);
+			
+			// ToDo --> set predecessor
 		}
 	}
 
@@ -85,5 +93,14 @@ public class ChordNode {
 		double x = center + radius * Math.cos(theta);
 		double y = center + radius * Math.sin(theta);
 		space.moveTo(node, x, y);
+	}
+	
+
+	@ScheduledMethod(start = 1, interval = 0)
+	public void generateLookup() {
+		int selectedNode = rnd.nextInt(nodes.size() - 1);
+		Node node = nodes.get(selectedNode);
+		int lookupKey = rnd.nextInt(SPACEDIMENSION);
+		node.startLookup(lookupKey);
 	}
 }

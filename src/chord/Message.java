@@ -2,25 +2,22 @@ package chord;
 
 public class Message {
 	private MessageType type;
-	private Integer successor;
+	private Integer key;
 	
-	public Message(MessageType type) {
-		this.setType(type);
+	public Message(MessageType type, Integer key) {
+		this.type = type;
+		this.key = key;
 	}
 
 	public MessageType getType() {
-		return type;
+		return this.type;
 	}
 
 	public void setType(MessageType type) {
 		this.type = type;
 	}
-
-	public Integer getSuccessor() {
-		return successor;
-	}
-
-	public void setSuccessor(Integer successor) {
-		this.successor = successor;
+	
+	public Integer getKey() {
+		return this.key;
 	}
 }

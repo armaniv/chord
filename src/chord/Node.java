@@ -5,10 +5,12 @@ public class Node {
 	private Integer[] fingerTable;
 	private Integer successor;
 	private Integer predecessor;
+	private Router router;
 
-	public Node(Integer id, Integer FINGER_TABLE_SIZE) {
-		this.setId(id);
+	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router) {
+		this.id = id;
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
+		this.router = router;
 	}
 
 	public void receive(Message message) {
@@ -60,6 +62,17 @@ public class Node {
 		return false;
 	}
 
+	public void startLookup(Integer lookupKey) {
+		Message msg = new Message(MessageType.LOOKUP, lookupKey);
+		Integer destination = findSuccessor(lookupKey);
+		
+		System.out.println(String.format("%02d[%02d] -> %03d", this.id, lookupKey, destination));
+		this.router.send(msg, this.id, destination);
+	}
+	
+	
+	// --------------- getter and setter methods ---------------
+	
 	public Integer[] getFingerTable() {
 		return fingerTable;
 	}
@@ -68,16 +81,8 @@ public class Node {
 		this.fingerTable = fingerTable;
 	}
 
-	public Integer getSuccessor() {
-		return successor;
-	}
-
 	public void setSuccessor(Integer successor) {
 		this.successor = successor;
-	}
-
-	public Integer getPredecessor() {
-		return predecessor;
 	}
 
 	public void setPredecessor(Integer predecessor) {
@@ -87,9 +92,5 @@ public class Node {
 	public Integer getId() {
 		return id;
 	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
+	
 }

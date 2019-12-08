@@ -40,7 +40,7 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 
-			Node node = new Node(id, FINGER_TABLE_SIZE,router);
+			Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
 			this.nodes.put(id, node);
 			this.context.add(node);
 			visualizeNode(node);
@@ -60,7 +60,7 @@ public class ChordNode {
 		int counter = 1;
 		Integer predecessor = null;
 		Node firstNode = null;
-		for (Integer key : nodes.keySet()) {
+		for (Integer key : sortedKeys) {
 			Node node = nodes.get(key);
 			int id = node.getId();
 			Integer[] fingerTable = new Integer[FINGER_TABLE_SIZE];
@@ -117,5 +117,9 @@ public class ChordNode {
 		Node node = this.nodes.get(nodes[selectedNode]);
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
 		node.startLookup(lookupKey);
+	}
+	
+	public void receiveLookupResult(Message message, Integer receiverId) {
+		System.out.println("Key " + message.getKey() + " found at Node " + receiverId);
 	}
 }

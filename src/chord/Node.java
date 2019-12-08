@@ -6,11 +6,13 @@ public class Node {
 	private Integer successor;
 	private Integer predecessor;
 	private Router router;
+	private ChordNode masterNode;
 
-	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router) {
+	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode) {
 		this.id = id;
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 		this.router = router;
+		this.masterNode = masterNode;
 	}
 
 	public void receive(Message message) {

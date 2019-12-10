@@ -5,17 +5,22 @@ import java.util.HashMap;
 
 public class PendingLookups {
 	// ASSUMPTION: a node can serve only 1 request per key per time
-	// that means that a node should never process a request for a key
-	// if a request for that key already exists. If that happens
-	// the behaviour of this module is not undefined
+	// if a node tries to add an already existent lookup, lookup will 
+	// not be added to the pending lookups and it will be actually ignored
 	private HashMap<Integer, Lookup> pendingLookups;
 	
 	public PendingLookups() {
 		this.pendingLookups = new HashMap<>();
 	}
 	
-	public void addLookup(Lookup lookup) {
-		this.pendingLookups.put(lookup.getKey(), lookup);
+	public Boolean addLookup(Lookup lookup) {
+		if (!pendingLookups.containsKey(lookup.getKey())) {
+			this.pendingLookups.put(lookup.getKey(), lookup);
+			return Boolean.TRUE;
+		}else {
+			return Boolean.FALSE;
+		}
+		
 	}
 	
 	public Lookup getLookup(Integer key) {
@@ -37,5 +42,9 @@ public class PendingLookups {
 			}
 		}
 		return Boolean.FALSE;	// never reached
+	}
+	
+	public Boolean containsLookupFor(Integer key) {
+		return this.pendingLookups.containsKey(key);
 	}
 }

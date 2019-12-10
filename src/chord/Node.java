@@ -69,6 +69,7 @@ public class Node {
 		// update pendingLookups
 		// forward the request
 		// schedule timeout check
+		
 	}
 
 	public Integer findSuccessor(Integer id) {
@@ -154,6 +155,11 @@ public class Node {
 	
 	public Boolean isCrashed() {
 		return this.isCrashed;
+	}
+	
+	// master should check this before sending LOOKUP requests to nodes
+	public Boolean isAlreadyProcessingLookupFor(Integer key) {
+		return this.pendingLookups.containsLookupFor(key);
 	}
 	
 	

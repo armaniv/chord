@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
@@ -17,18 +18,13 @@ public class ChordNode {
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Random rnd; // Java random, approximately uniform distributed
 	private Router router;
-	
-	private Integer num_total_nodes;
 	HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
 
 	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_init_nodes, int num_total_nodes) {
 		this.context = context;
 		this.space = space;
-		this.num_total_nodes = num_total_nodes;
-		
 		this.rnd = new Random();
 		this.router = new Router();
-
 		createInitialNetwork(num_init_nodes);
 	}
 
@@ -107,18 +103,29 @@ public class ChordNode {
 		space.moveTo(node, x, y);
 	}
 	
+	// generate a lookup(key, node) only if the node 
+	// is not already processing the same request
 	@ScheduledMethod(start = 1, interval = 0)
 	public void generateLookup() {
-		int selectedNode = rnd.nextInt(nodes.size() - 1);
-		Integer[] nodes = new Integer[this.nodes.size()];
-		nodes = this.nodes.keySet().toArray(nodes);
-		Node node = this.nodes.get(nodes[selectedNode]);
+		Node randomNode = null;
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		node.startLookup(lookupKey);
+		Boolean isAlreadyProcessingThisKey = Boolean.TRUE;
+		while (isAlreadyProcessingThisKey) {
+			randomNode = selectRandomNode();
+			isAlreadyProcessingThisKey = randomNode.isAlreadyProcessingLookupFor(lookupKey);
+		}
+		randomNode.startLookup(lookupKey);
 	}
 	
 	public void receiveLookupResult(Lookup lookup) {
 		ArrayList<Integer> messagePath = lookup.getMessagePath();
 		System.out.println("Key " + lookup.getKey() + " found at Node " + messagePath.get(messagePath.size()-1));
+	}
+	
+	public Node selectRandomNode() {
+		int selectedNode = rnd.nextInt(nodes.size() - 1);
+		Integer[] nodes = new Integer[this.nodes.size()];
+		nodes = this.nodes.keySet().toArray(nodes);
+		return this.nodes.get(nodes[selectedNode]);
 	}
 }

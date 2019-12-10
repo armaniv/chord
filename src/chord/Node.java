@@ -51,7 +51,7 @@ public class Node {
 	}
 	
 	public void onLookup(Message message) {
-		if (insideInterval(message.getLookupKey(), this.predecessor, this.id)) {
+		if (insideInterval(message.getLookupKey(), this.predecessor, this.id+1)) {
 			Message ack = new Message(MessageType.FOUND_KEY, this.id, message.getSourceNode());
 			ack.setLookupKey(message.getLookupKey());
 			ack.setSuccessor(this.id);
@@ -112,7 +112,7 @@ public class Node {
 	}
 
 	private boolean insideInterval(Integer value, Integer a, Integer b) {
-		if (value > a && value < b) {
+		if (value > a && value <= b) {
 			return true;
 		}
 		if (value < a && a > b && value < b) {
@@ -126,7 +126,7 @@ public class Node {
 	}
 
 	public void startLookup(Integer lookupKey) {
-		if (insideInterval(lookupKey, this.predecessor, this.id)) {
+		if (insideInterval(lookupKey, this.predecessor, this.id+1)) {
 			Lookup lookup = new Lookup(lookupKey);
 			lookup.addNodeToPath(this.id);
 			lookup.setOutcome(this.id);

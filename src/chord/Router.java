@@ -22,12 +22,12 @@ public class Router {
 		}
 	}
 	
-	public void send(Message message, Integer sourceNodeId, Integer destinationNodeId) {
+	public void send(Message message) {
 		
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		ScheduleParameters scheduleParameters = 
 				ScheduleParameters.createOneTime(schedule.getTickCount() + 1, PriorityType.RANDOM);
-		schedule.schedule(scheduleParameters, new ReceiveMessage(nodes.get(destinationNodeId), message));
+		schedule.schedule(scheduleParameters, new ReceiveMessage(nodes.get(message.getDestinationNode()), message));
 	}
 	
 	public Boolean isUp(Integer nodeId) {

@@ -13,7 +13,6 @@ public class Node {
 	private Integer predecessor;
 	private Router router;
 	private ChordNode masterNode;
-	private Message processedMessage;
 	private PendingLookups pendingLookups;
 	private Boolean isCrashed;
 
@@ -27,11 +26,11 @@ public class Node {
 	}
 
 	public void receive(Message message) {
-		this.processedMessage = message;
 		
 		switch (message.getType()) {
 				
 			case LOOKUP:
+				System.out.println("Node " + this.id.toString() + " received LOOKUP from " + message.getSourceNode());
 				this.onLookup(message);
 				break;
 				
@@ -51,16 +50,18 @@ public class Node {
 	
 	public void onLookup(Message message) {
 		if (insideInterval(message.getLookupKey(), this.predecessor, this.id)) {
-			Message ack = new Message(MessageType.FOUND_KEY, message.getSourceNode());
+			Message ack = new Message(MessageType.FOUND_KEY, this.id, message.getSourceNode());
 			ack.setLookupKey(message.getLookupKey());
 			ack.setSuccessor(this.id);
-			sendMessage(ack, message.getSourceNode());
+			router.send(ack);
+			System.out.println("Node " + this.id.toString() + " sent FOUND_KEY to " + message.getSourceNode().toString());
 		}else {
 			Integer successor = findSuccessor(message.getLookupKey());
-			Message ack = new Message(MessageType.FOUND_SUCC, message.getSourceNode());
+			Message ack = new Message(MessageType.FOUND_SUCC, this.id, successor);
 			ack.setLookupKey(message.getLookupKey());
 			ack.setSuccessor(successor);
-			this.router.send(ack, this.id, successor);
+			this.router.send(ack);
+			System.out.println("Node " + this.id.toString() + " sent FOUND_SUCC to " + message.getSourceNode().toString());
 		}
 		
 	}
@@ -115,29 +116,30 @@ public class Node {
 			lookup.addNode(this.id);
 			lookup.setOutcome(this.id);
 			signalLookupResolved(lookup);
+			System.out.println("Node " + this.id.toString() + " resolved LOOKUP by ITSELF ");
 		}else {
-			Message lookupMessage = new Message(MessageType.LOOKUP, lookupKey);
+			
 			Integer successor = findSuccessor(lookupKey);
-			sendLookup(lookupMessage, successor);
+			Message lookupMessage = new Message(MessageType.LOOKUP, this.id, successor);
+			lookupMessage.setLookupKey(lookupKey);
+			sendLookup(lookupMessage);
+			System.out.println("Node " + this.id.toString() + " sent LOOKUP to " + lookupMessage.getDestinationNode().toString());
 		}
 	}
 	
-	public void sendLookup(Message lookupMessage, Integer destinationNodeId) {
+	public void sendLookup(Message lookupMessage) {
 		Lookup lookup = new Lookup(lookupMessage.getLookupKey());
-		lookup.addNode(destinationNodeId);
+		Integer destNodeId = lookupMessage.getDestinationNode();
+		lookup.addNode(destNodeId);
 		this.pendingLookups.addLookup(lookup);
-		scheduleFailCheck(lookup, destinationNodeId);
-		this.router.send(lookupMessage, this.id, destinationNodeId);
-		System.out.println("Node " + this.id.toString() + " sent LOOKUP to " + destinationNodeId.toString());
+		scheduleFailCheck(lookup, destNodeId);
+		this.router.send(lookupMessage);
 	}
 	
 	private void signalLookupResolved(Lookup lookUp) {
 		this.masterNode.receiveLookupResult(lookUp);
 	}
 	
-	private void sendMessage(Message message, Integer dest) {
-		this.router.send(message, this.id, dest);
-	}
 	
 	private void scheduleFailCheck(Lookup lookup, Integer destinationNodeId) {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();

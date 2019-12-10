@@ -4,11 +4,13 @@ public class Message {
 	private MessageType type;
 	private Integer lookupKey;
 	private Integer sourceNode;
+	private Integer destinationNode;
 	private Integer successor;
 	
-	public Message(MessageType type, Integer soureNode) {
-		this.type = type;
+	public Message(MessageType type, Integer soureNode, Integer destinationNode) {
+		this.setType(type);
 		this.setSourceNode(sourceNode);
+		this.setDestinationNode(destinationNode);
 	}
 
 	public MessageType getType() {
@@ -41,5 +43,13 @@ public class Message {
 
 	public void setSuccessor(Integer successor) {
 		this.successor = successor;
+	}
+
+	public Integer getDestinationNode() {
+		return destinationNode;
+	}
+
+	public void setDestinationNode(Integer destinationNode) {
+		this.destinationNode = destinationNode;
 	}
 }

@@ -1,5 +1,7 @@
 package chord;
 
 public enum MessageType {
-	LOOKUP
+	LOOKUP,
+	FOUND_KEY,
+	FOUND_SUCC
 }

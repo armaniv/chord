@@ -114,11 +114,10 @@ public class ChordNode {
 		nodes = this.nodes.keySet().toArray(nodes);
 		Node node = this.nodes.get(nodes[selectedNode]);
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		Message msg = new Message(MessageType.LOOKUP, lookupKey);
-		node.receive(msg);
+		node.startLookup(lookupKey);
 	}
 	
-	public void receiveLookupResult(Message message, Integer receiverId) {
-		System.out.println("Key " + message.getLookupKey() + " found at Node " + receiverId);
+	public void receiveLookupResult(Lookup lookup) {
+		System.out.println("Key " + lookup.getKey() + " found at Node " + lookup.getOutcome());
 	}
 }

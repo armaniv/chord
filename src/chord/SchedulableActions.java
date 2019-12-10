@@ -14,8 +14,23 @@ public class SchedulableActions {
 		}
 
 		public void execute() {
-			Node node = this.node;
-			node.receive(message);
+			this.node.receive(message);
+		}
+	}
+	
+	public static class FailCheck implements IAction {
+		private Node node;
+		private Lookup lookup;
+		private Integer nodeIdToCheck;
+
+		public FailCheck(Node node, Lookup lookup, Integer nodeIdToCheck) {
+			this.lookup = lookup;
+			this.node = node;
+			this.nodeIdToCheck = nodeIdToCheck;
+		}
+
+		public void execute() {
+			this.node.failCheck(lookup, nodeIdToCheck);
 		}
 	}
 }

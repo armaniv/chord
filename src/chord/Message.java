@@ -3,12 +3,12 @@ package chord;
 public class Message {
 	private MessageType type;
 	private Integer lookupKey;
-	private Integer receiversCount;
+	private Integer sourceNode;
+	private Integer successor;
 	
-	public Message(MessageType type, Integer lookupKey) {
+	public Message(MessageType type, Integer soureNode) {
 		this.type = type;
-		this.lookupKey = lookupKey;
-		this.receiversCount = 0;
+		this.setSourceNode(sourceNode);
 	}
 
 	public MessageType getType() {
@@ -23,11 +23,23 @@ public class Message {
 		return lookupKey;
 	}
 
-	public void setlookupKey(Integer key) {
+	public void setLookupKey(Integer key) {
 		this.lookupKey = key;
 	}
-	
-	public void incrementReceivers() {
-		this.receiversCount++;
+
+	public Integer getSourceNode() {
+		return sourceNode;
+	}
+
+	public void setSourceNode(Integer sourceNode) {
+		this.sourceNode = sourceNode;
+	}
+
+	public Integer getSuccessor() {
+		return successor;
+	}
+
+	public void setSuccessor(Integer successor) {
+		this.successor = successor;
 	}
 }

@@ -29,4 +29,8 @@ public class Router {
 				ScheduleParameters.createOneTime(schedule.getTickCount() + 1, PriorityType.RANDOM);
 		schedule.schedule(scheduleParameters, new ReceiveMessage(nodes.get(destinationNodeId), message));
 	}
+	
+	public Boolean isUp(Integer nodeId) {
+		return !nodes.get(nodeId).isCrashed();
+	}
 }

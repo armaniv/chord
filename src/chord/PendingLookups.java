@@ -38,7 +38,11 @@ public class PendingLookups {
 	// if i was not able to over pass that node, it means that it failed
 	// method to be called at least 5 THINKS after lookup has been forwarded
 	// to the first successor
-	public Boolean isPathBroken(Integer nodeId, Lookup lookup) {
+	public Boolean isPathBroken(Integer nodeId, Integer lookupKey) {
+		if (!this.pendingLookups.containsKey(lookupKey)) {
+			return Boolean.FALSE;
+		}
+		Lookup lookup = this.pendingLookups.get(lookupKey);
 		ArrayList<Integer> messagePath = lookup.getMessagePath();
 		for (int i=0; i<messagePath.size(); i++) {
 			if (messagePath.get(i).equals(nodeId)) {

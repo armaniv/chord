@@ -143,7 +143,10 @@ public class Node {
 	}
 	
 	public void sendLookup(Message lookupMessage) {
-		Lookup lookup = new Lookup(lookupMessage.getLookupKey());
+		Lookup lookup = this.pendingLookups.getLookup(lookupMessage.getLookupKey());
+		if (lookup == null) {
+			lookup = new Lookup(lookupMessage.getLookupKey());
+		}
 		Integer destNodeId = lookupMessage.getDestinationNode();
 		lookup.addNodeToPath(destNodeId);
 		this.pendingLookups.addLookup(lookup);
@@ -164,10 +167,11 @@ public class Node {
 	}
 	
 	public void failCheck(Lookup lookup, Integer nodeIdToCheck) {
-		System.out.println("Node " + this.id.toString() + " should CHECK_FAILURE of " + nodeIdToCheck.toString());
 		// UNCOMPLETED
-		if (this.pendingLookups.isPathBroken(nodeIdToCheck, lookup)) {
-			
+		if (this.pendingLookups.isPathBroken(nodeIdToCheck, lookup.getKey())) {
+			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> CRASHED");
+		}else {
+			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> OK");
 		}
 	}
 	

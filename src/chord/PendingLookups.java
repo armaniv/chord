@@ -14,17 +14,25 @@ public class PendingLookups {
 	}
 	
 	public Boolean addLookup(Lookup lookup) {
-		if (!pendingLookups.containsKey(lookup.getKey())) {
+		if (!this.pendingLookups.containsKey(lookup.getKey())) {
 			this.pendingLookups.put(lookup.getKey(), lookup);
 			return Boolean.TRUE;
 		}else {
 			return Boolean.FALSE;
 		}
-		
+	}
+	
+	// updates if already exists
+	public void updateLookup(Lookup lookup) {
+		this.pendingLookups.put(lookup.getKey(), lookup);
 	}
 	
 	public Lookup getLookup(Integer key) {
 		return this.pendingLookups.get(key);
+	}
+	
+	public Lookup removeLookup(Integer key) {
+		return this.pendingLookups.remove(key);
 	}
 	
 	// if i was not able to over pass that node, it means that it failed

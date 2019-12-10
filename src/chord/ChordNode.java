@@ -107,7 +107,7 @@ public class ChordNode {
 		space.moveTo(node, x, y);
 	}
 	
-	@ScheduledMethod(start = 1, interval = 5)
+	@ScheduledMethod(start = 1, interval = 0)
 	public void generateLookup() {
 		int selectedNode = rnd.nextInt(nodes.size() - 1);
 		Integer[] nodes = new Integer[this.nodes.size()];
@@ -118,6 +118,7 @@ public class ChordNode {
 	}
 	
 	public void receiveLookupResult(Lookup lookup) {
-		System.out.println("Key " + lookup.getKey() + " found at Node " + lookup.getOutcome());
+		ArrayList<Integer> messagePath = lookup.getMessagePath();
+		System.out.println("Key " + lookup.getKey() + " found at Node " + messagePath.get(messagePath.size()-1));
 	}
 }

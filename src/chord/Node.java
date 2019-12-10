@@ -30,15 +30,17 @@ public class Node {
 		switch (message.getType()) {
 				
 			case LOOKUP:
-				System.out.println("Node " + this.id.toString() + " received LOOKUP from " + message.getSourceNode());
+				System.out.println("Node " + this.id.toString() + " received LOOKUP("+message.getLookupKey()+") from " + message.getSourceNode());
 				this.onLookup(message);
 				break;
 				
 			case FOUND_KEY:
-				// remove pendingLookup and deliver it to master
+				System.out.println("Node " + this.id.toString() + " received FOUND_KEY("+message.getSourceNode()+") from " + message.getSourceNode());
+				this.onFoundKey(message);
 				break;
 				
 			case FOUND_SUCC:
+				System.out.println("Node " + this.id.toString() + " received FOUND_SUCC("+message.getSuccessor()+") from " + message.getSourceNode());
 				this.onFoundSucc(message);
 				break;
 	
@@ -54,23 +56,36 @@ public class Node {
 			ack.setLookupKey(message.getLookupKey());
 			ack.setSuccessor(this.id);
 			router.send(ack);
-			System.out.println("Node " + this.id.toString() + " sent FOUND_KEY to " + message.getSourceNode().toString());
+			System.out.println("Node " + this.id.toString() + " sent FOUND_KEY("+message.getLookupKey()+") to " + message.getSourceNode().toString());
 		}else {
 			Integer successor = findSuccessor(message.getLookupKey());
-			Message ack = new Message(MessageType.FOUND_SUCC, this.id, successor);
+			Message ack = new Message(MessageType.FOUND_SUCC, this.id, message.getSourceNode());
 			ack.setLookupKey(message.getLookupKey());
 			ack.setSuccessor(successor);
 			this.router.send(ack);
-			System.out.println("Node " + this.id.toString() + " sent FOUND_SUCC to " + message.getSourceNode().toString());
+			System.out.println("Node " + this.id.toString() + " sent FOUND_SUCC("+ack.getSuccessor()+") to " + message.getSourceNode().toString());
 		}
 		
 	}
 	
+	// update pendingLookups
+	// forward the request
+	// schedule timeout check
 	public void onFoundSucc(Message message) {
-		// update pendingLookups
-		// forward the request
-		// schedule timeout check
-		
+		Lookup lookup = this.pendingLookups.getLookup(message.getLookupKey());
+		// lookup cannot be null
+		lookup.addNodeToPath(message.getSourceNode());
+		this.pendingLookups.updateLookup(lookup);
+		Message lookupMessage = new Message(MessageType.LOOKUP, this.id, message.getSuccessor());
+		lookupMessage.setLookupKey(message.getLookupKey());
+		sendLookup(lookupMessage);
+		System.out.println("Node " + this.id.toString() + " sent LOOKUP(" + message.getLookupKey() +") to " + message.getSuccessor());
+	}
+	
+	// remove pendingLookup and deliver it to master
+	public void onFoundKey(Message message) {
+		Lookup lookup = this.pendingLookups.removeLookup(message.getLookupKey());
+		this.signalLookupResolved(lookup);
 	}
 
 	public Integer findSuccessor(Integer id) {
@@ -116,14 +131,14 @@ public class Node {
 			lookup.addNodeToPath(this.id);
 			lookup.setOutcome(this.id);
 			signalLookupResolved(lookup);
-			System.out.println("Node " + this.id.toString() + " resolved LOOKUP by ITSELF ");
+			System.out.println("Node " + this.id.toString() + " resolved LOOKUP(" +lookupKey+") by ITSELF ");
 		}else {
 			
 			Integer successor = findSuccessor(lookupKey);
 			Message lookupMessage = new Message(MessageType.LOOKUP, this.id, successor);
 			lookupMessage.setLookupKey(lookupKey);
 			sendLookup(lookupMessage);
-			System.out.println("Node " + this.id.toString() + " sent LOOKUP to " + lookupMessage.getDestinationNode().toString());
+			System.out.println("Node " + this.id.toString() + " sent LOOKUP(" + lookupMessage.getLookupKey() +") to " + lookupMessage.getDestinationNode().toString());
 		}
 	}
 	
@@ -136,8 +151,8 @@ public class Node {
 		this.router.send(lookupMessage);
 	}
 	
-	private void signalLookupResolved(Lookup lookUp) {
-		this.masterNode.receiveLookupResult(lookUp);
+	private void signalLookupResolved(Lookup lookup) {
+		this.masterNode.receiveLookupResult(lookup);
 	}
 	
 	

@@ -14,7 +14,7 @@ public class Lookup {
 	}
 	
 	public void addNodeToPath(Integer nodeId) {
-		this.getMessagePath().add(nodeId);
+		this.getMessagePath().add(Integer.valueOf(nodeId));
 	}
 
 	public Integer getOutcome() {

@@ -113,7 +113,7 @@ public class Node {
 	public void startLookup(Integer lookupKey) {
 		if (insideInterval(lookupKey, this.predecessor, this.id)) {
 			Lookup lookup = new Lookup(lookupKey);
-			lookup.addNode(this.id);
+			lookup.addNodeToPath(this.id);
 			lookup.setOutcome(this.id);
 			signalLookupResolved(lookup);
 			System.out.println("Node " + this.id.toString() + " resolved LOOKUP by ITSELF ");
@@ -130,7 +130,7 @@ public class Node {
 	public void sendLookup(Message lookupMessage) {
 		Lookup lookup = new Lookup(lookupMessage.getLookupKey());
 		Integer destNodeId = lookupMessage.getDestinationNode();
-		lookup.addNode(destNodeId);
+		lookup.addNodeToPath(destNodeId);
 		this.pendingLookups.addLookup(lookup);
 		scheduleFailCheck(lookup, destNodeId);
 		this.router.send(lookupMessage);
@@ -149,6 +149,7 @@ public class Node {
 	}
 	
 	public void failCheck(Lookup lookup, Integer nodeIdToCheck) {
+		System.out.println("Node " + this.id.toString() + " should CHECK_FAILURE of " + nodeIdToCheck.toString());
 		// UNCOMPLETED
 		if (this.pendingLookups.isPathBroken(nodeIdToCheck, lookup)) {
 			

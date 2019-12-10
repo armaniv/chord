@@ -10,9 +10,10 @@ public class Lookup {
 	public Lookup(Integer key) {
 		this.key = key;
 		this.outcome = null;
+		this.messagePath = new ArrayList<>();
 	}
 	
-	public void addNode(Integer nodeId) {
+	public void addNodeToPath(Integer nodeId) {
 		this.getMessagePath().add(nodeId);
 	}
 
@@ -21,7 +22,7 @@ public class Lookup {
 	}
 
 	public void setOutcome(Integer outcome) {
-		this.outcome = outcome;
+		this.outcome = Integer.valueOf(outcome);
 	}
 	
 	public Integer getKey() {
@@ -30,10 +31,6 @@ public class Lookup {
 
 	public ArrayList<Integer> getMessagePath() {
 		return messagePath;
-	}
-
-	public void setMessagePath(ArrayList<Integer> contactedNodes) {
-		this.messagePath = contactedNodes;
 	}
 
 }

@@ -24,6 +24,7 @@ public class Router {
 	}
 	
 	public void send(Message message) {
+		// ??? if for simulating a crash we remove a node, maybe add a try catch nullpointerExcenption ???  
 		
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		ScheduleParameters scheduleParameters = 

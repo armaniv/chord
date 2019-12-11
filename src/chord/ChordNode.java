@@ -1,6 +1,7 @@
 package chord;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +50,7 @@ public class ChordNode {
 	private void createInitialFingerTables() {
 		List<Integer> sortedKeys = new ArrayList<>(nodes.keySet());
 		Collections.sort(sortedKeys);
-		// System.out.println(Arrays.toString(sortedKeys.toArray()));
+		System.out.println(Arrays.toString(sortedKeys.toArray()));
 
 		int counter = 1;
 		Integer predecessor = null;

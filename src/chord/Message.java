@@ -2,11 +2,12 @@ package chord;
 
 public class Message {
 	private MessageType type;
-	private Integer lookupKey;
+	private Integer lookupKey;				//the value we are searching for inside the chord ring (default null)
 	private Integer sourceNode;
 	private Integer destinationNode;
-	private Integer successor;
-	
+	private Integer successor;				//the next node to contact in order to continuing a lookup  (default null)
+	private Integer predecessor;			//the predecessor of a node, used in stabilize procedure (default null)
+
 	public Message(MessageType type, Integer sourceNode, Integer destinationNode) {
 		this.setType(type);
 		this.setSourceNode(sourceNode);
@@ -51,5 +52,13 @@ public class Message {
 
 	public void setDestinationNode(Integer destinationNode) {
 		this.destinationNode = Integer.valueOf(destinationNode);
+	}
+
+	public Integer getPredecessor() {
+		return predecessor;
+	}
+
+	public void setPredecessor(Integer predecessor) {
+		this.predecessor = predecessor;
 	}
 }

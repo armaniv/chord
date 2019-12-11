@@ -1,10 +1,13 @@
 package chord;
 
+import java.util.Random;
+
 import chord.SchedulableActions.FailCheck;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.PriorityType;
 import repast.simphony.engine.schedule.ScheduleParameters;
+import repast.simphony.engine.schedule.ScheduledMethod;
 
 public class Node {
 	private Integer id;
@@ -14,7 +17,7 @@ public class Node {
 	private Router router;
 	private ChordNode masterNode;
 	private PendingLookups pendingLookups;
-	private Boolean isCrashed;
+	private Boolean isCrashed;  // ??? variable or physic remove of the node ??? 
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode) {
 		this.id = id;
@@ -30,18 +33,33 @@ public class Node {
 		switch (message.getType()) {
 				
 			case LOOKUP:
-				System.out.println("Node " + this.id.toString() + " received LOOKUP("+message.getLookupKey()+") from " + message.getSourceNode());
+				//System.out.println("Node " + this.id.toString() + " received LOOKUP("+message.getLookupKey()+") from " + message.getSourceNode());
 				this.onLookup(message);
 				break;
 				
 			case FOUND_KEY:
-				System.out.println("Node " + this.id.toString() + " received FOUND_KEY("+message.getSourceNode()+") from " + message.getSourceNode());
+				//System.out.println("Node " + this.id.toString() + " received FOUND_KEY("+message.getSourceNode()+") from " + message.getSourceNode());
 				this.onFoundKey(message);
 				break;
 				
 			case FOUND_SUCC:
-				System.out.println("Node " + this.id.toString() + " received FOUND_SUCC("+message.getSuccessor()+") from " + message.getSourceNode());
+				//System.out.println("Node " + this.id.toString() + " received FOUND_SUCC("+message.getSuccessor()+") from " + message.getSourceNode());
 				this.onFoundSucc(message);
+				break;
+				
+			case STABILIZE:
+				//System.out.println("Node " + this.id.toString() + " received STABILIZE from " + message.getSourceNode());
+				this.onStabilize(message);
+				break;
+				
+			case ACK_STABILIZE:
+				//System.out.println("Node " + this.id.toString() + " received ACK_STABILIZE from " + message.getSourceNode());
+				this.onACKStabilize(message);
+				break;
+				
+			case NOTIFY:
+				//System.out.println("Node " + this.id.toString() + " received NOTIFY from " + message.getSourceNode());
+				this.onNotify(message);
 				break;
 	
 			default:
@@ -181,6 +199,38 @@ public class Node {
 	// master should check this before sending LOOKUP requests to nodes
 	public Boolean isAlreadyProcessingLookupFor(Integer key) {
 		return this.pendingLookups.containsLookupFor(key);
+	}
+	
+	
+	@ScheduledMethod(start = 5, interval = 5)
+	public void stabilize(){
+		Message msgStabilize = new Message(MessageType.STABILIZE, this.id, this.successor);
+		this.router.send(msgStabilize);	
+	}
+	
+	public void onStabilize(Message message) {
+		Message replayStabilize = new Message(MessageType.ACK_STABILIZE, this.id, message.getSourceNode());
+		replayStabilize.setPredecessor(this.predecessor);
+		this.router.send(replayStabilize);
+	}
+	
+	public void onACKStabilize(Message message) {
+		Integer x = message.getPredecessor();
+		if(insideInterval(x, this.id, this.successor)){
+			this.successor = x;
+		}
+		
+		//successor.notify(n);
+		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, this.successor);
+		this.router.send(notifyMsg);
+	}
+	
+	public void onNotify(Message message) {
+		Integer nPrime = message.getSourceNode();
+		
+		if (this.predecessor == null || insideInterval(nPrime, this.predecessor, this.id)) {
+			this.predecessor = nPrime;
+		}
 	}
 	
 	

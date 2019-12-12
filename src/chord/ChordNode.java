@@ -132,6 +132,29 @@ public class ChordNode {
 		randomNode.startLookup(lookupKey);
 	}
 	
+	@ScheduledMethod(start = 8, interval = 10, priority = 100)
+	public void simulateChurnRate(){
+		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
+		
+		for(int i=0; i< n_FailAndJoin; i++) {
+			Node node = selectRandomNode();		//choose a node randomly
+			Integer key = node.getId();			//get its key
+			node.removeAllSchedule();			//remove all its scheduled actions
+			this.nodes.remove(key);				//remove it from the set of nodes
+			this.context.remove(node);			//remove it from the context
+			this.router.removeANode(key);		//signal to the router to remove it
+			this.edges.remove(key);				//remove it from the hash edges
+			System.out.println("Node" + key + " crashes");
+		}
+		
+		for(int i=0; i < n_FailAndJoin; i++) {
+			// Generate a new node 
+			// call Join() on it
+			// add node to nodes 
+			// add node to router 
+		}
+	}
+	
 	public void receiveLookupResult(Lookup lookup) {
 		ArrayList<Integer> messagePath = lookup.getMessagePath();
 		System.out.println("Key " + lookup.getKey() + " found at Node " + messagePath.get(messagePath.size()-1));
@@ -150,13 +173,14 @@ public class ChordNode {
 		}
 		
 		ArrayList<RepastEdge<Object>> singleNodeEdges = this.edges.get(source);
-		singleNodeEdges.add(this.network.addEdge(nodes.get(source), nodes.get(destination)));
+		if(nodes.get(source) != null && nodes.get(destination)!= null) {
+			singleNodeEdges.add(this.network.addEdge(nodes.get(source), nodes.get(destination)));
+		}
 	}
 	
 	public void removeAnEdge(Integer source, Integer destination) {
 		ArrayList<RepastEdge<Object>> singleNodeEdges = this.edges.get(source);
 		
-		System.out.println("s" + source + " d:" + destination);
 		for (int i = singleNodeEdges.size() -1; i >= 0; i--) {
 			RepastEdge<Object> edge = singleNodeEdges.get(i);
 			if(edge.getTarget().equals(this.nodes.get(destination))) {

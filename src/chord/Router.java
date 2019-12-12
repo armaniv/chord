@@ -10,33 +10,35 @@ import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.random.RandomHelper;
 
 public class Router {
-	private HashMap<Integer, Node> nodes; 
+	private HashMap<Integer, Node> nodes;
 
 	public Router() {
 		this.nodes = new HashMap<Integer, Node>();
 	}
-	
+
 	public void setNodes(HashMap<Integer, Node> nodes) {
 		for (Integer key : nodes.keySet()) {
 			Node node = nodes.get(key);
-			this.nodes.put(key, node);	
+			this.nodes.put(key, node);
 		}
 	}
-	
+
 	public void send(Message message) {
-		// ??? if for simulating a crash we remove a node, maybe add a try catch nullpointerExcenption ???  
+		Node receiver = nodes.get(message.getDestinationNode());
 		
-		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-		ScheduleParameters scheduleParameters = 
-				ScheduleParameters.createOneTime(schedule.getTickCount() + randomDelay(), PriorityType.RANDOM);
-		schedule.schedule(scheduleParameters, new ReceiveMessage(nodes.get(message.getDestinationNode()), message));
+		if (receiver != null) {
+			ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+			ScheduleParameters scheduleParameters = ScheduleParameters
+					.createOneTime(schedule.getTickCount() + randomDelay(), PriorityType.RANDOM);
+			schedule.schedule(scheduleParameters, new ReceiveMessage(receiver, message));
+		}
 	}
-	
-	public Boolean isUp(Integer nodeId) {
-		return !nodes.get(nodeId).isCrashed();
-	}
-	
+
 	public int randomDelay() {
 		return RandomHelper.nextIntFromTo(1, 2);
+	}
+
+	public void removeANode(Integer nodeID) {
+		this.nodes.remove(nodeID);
 	}
 }

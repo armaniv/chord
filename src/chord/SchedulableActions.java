@@ -14,10 +14,15 @@ public class SchedulableActions {
 		}
 
 		public void execute() {
-			this.node.receive(message);
+			try{
+				this.node.receive(message);
+			}
+			catch (Exception e){
+				System.out.println("Destination not reacable");
+			}
 		}
 	}
-	
+
 	public static class FailCheck implements IAction {
 		private Node node;
 		private Integer lookupKey;

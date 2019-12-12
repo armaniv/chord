@@ -1,12 +1,14 @@
 package chord;
 
+import java.util.ArrayList;
+
 import chord.SchedulableActions.FailCheck;
 import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.PriorityType;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
-import repast.simphony.space.graph.Network;
 
 public class Node {
 	private Integer id;
@@ -16,7 +18,7 @@ public class Node {
 	private Router router;
 	private ChordNode masterNode;
 	private PendingLookups pendingLookups;
-	private Boolean isCrashed;  // ??? variable or physic remove of the node ??? 
+	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode) {
 		this.id = id;
@@ -24,7 +26,6 @@ public class Node {
 		this.router = router;
 		this.masterNode = masterNode;
 		this.pendingLookups = new PendingLookups();
-		this.isCrashed = Boolean.FALSE;
 	}
 
 	public void receive(Message message) {
@@ -182,7 +183,14 @@ public class Node {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		ScheduleParameters scheduleParameters = 
 				ScheduleParameters.createOneTime(schedule.getTickCount() + 5, PriorityType.RANDOM);
-		schedule.schedule(scheduleParameters, new FailCheck(this, lookup.getKey(), destinationNodeId));
+		this.actions.add(schedule.schedule(scheduleParameters, new FailCheck(this, lookup.getKey(), destinationNodeId)));
+	}
+	
+	public void removeAllSchedule() {
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+		for(int i = 0; i < this.actions.size(); i++) {
+			schedule.removeAction(this.actions.get(i));
+		}
 	}
 	
 	public void failCheck(Integer lookupKey, Integer nodeIdToCheck) {
@@ -192,10 +200,6 @@ public class Node {
 		}else {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> OK");
 		}
-	}
-	
-	public Boolean isCrashed() {
-		return this.isCrashed;
 	}
 	
 	// master should check this before sending LOOKUP requests to nodes

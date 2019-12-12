@@ -3,6 +3,7 @@ package chord;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
+import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.parameter.Parameters;
@@ -20,11 +21,14 @@ public class ChordBuilder implements ContextBuilder<Object> {
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace("space", context,
 				new RandomCartesianAdder<Object>(), new repast.simphony.space.continuous.WrapAroundBorders(), 50, 50);
 		
+		NetworkBuilder<Object> networkBuilder = new NetworkBuilder<Object>("lookup_network", context, false);
+		networkBuilder.buildNetwork();
+		
 		Parameters params = RunEnvironment.getInstance().getParameters();
 		int num_nodes = params.getInteger("num_nodes");
 		int churn_rate = params.getInteger("churn_rate");
 				
-		ChordNode chordNode = new ChordNode(context, space, num_nodes);
+		ChordNode chordNode = new ChordNode(context, space, num_nodes, churn_rate);
 		context.add(chordNode);
 		
 		return context;

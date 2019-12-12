@@ -10,11 +10,21 @@
   <editedStyles>
     <entry>
       <string>chord.Node</string>
-      <string>chord.Node.style_1.xml</string>
+      <string>chord.Node.style_4.xml</string>
     </entry>
   </editedStyles>
-  <netStyles/>
-  <editedNetStyles/>
+  <netStyles>
+    <entry>
+      <string>lookup_network</string>
+      <string>repast.simphony.visualizationOGL2D.DefaultEdgeStyleOGL2D</string>
+    </entry>
+  </netStyles>
+  <editedNetStyles>
+    <entry>
+      <string>lookup_network</string>
+      <null/>
+    </entry>
+  </editedNetStyles>
   <frequency>ON_MOVE</frequency>
   <schedParams>
     <start>1.0</start>
@@ -23,7 +33,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1685428737</hashCode>
+    <hashCode>452694522</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
@@ -40,11 +50,23 @@
       <attributes/>
       <type>continuous space</type>
     </repast.simphony.scenario.data.ProjectionData>
+    <repast.simphony.scenario.data.ProjectionData>
+      <id>lookup_network</id>
+      <attributes/>
+      <type>network</type>
+    </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <visualizationProperties class="repast.simphony.visualization.UnitSizeLayoutProperties">
-    <unitSize>15.0</unitSize>
+    <unitSize>8.0</unitSize>
   </visualizationProperties>
   <projectionDescriptors>
+    <entry>
+      <string>lookup_network</string>
+      <repast.simphony.visualization.engine.DefaultProjectionDescriptor>
+        <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData[2]"/>
+        <props/>
+      </repast.simphony.visualization.engine.DefaultProjectionDescriptor>
+    </entry>
     <entry>
       <string>space</string>
       <repast.simphony.visualization.continuous.ContinuousProjectionDescriptor>
@@ -59,7 +81,7 @@
               </entry>
               <entry>
                 <string>UNIT_SIZE</string>
-                <float>15.0</float>
+                <float>8.0</float>
               </entry>
               <entry>
                 <string>SHOW</string>

@@ -10,22 +10,36 @@ import java.util.Random;
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
+import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
+	private Integer SPACEDIMENSION = 64;
+	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 
 	private Context<Object> context;
 	private ContinuousSpace<Object> space;
-	private Integer SPACEDIMENSION = 64;
-	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
-	private Random rnd; // Java random, approximately uniform distributed
 	private Router router;
-	HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
+	private Network<Object> network;
+	
+	private Integer num_nodes;
+	private Integer churn_rate;
+	private Random rnd; // Java random, approximately uniform distributed
+	private HashMap<Integer, Node> nodes; 
+	private HashMap<Integer, ArrayList<RepastEdge<Object>>> edges;
 
-	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes) {
+	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, int churn_rate) {
 		this.context = context;
 		this.space = space;
-		this.rnd = new Random();
+		this.network = (Network<Object>) context.getProjection("lookup_network");
 		this.router = new Router();
+		
+		this.num_nodes = num_nodes;
+		this.churn_rate = churn_rate;
+		this.rnd = new Random();
+		this.nodes = new HashMap<Integer, Node>();
+		this.edges = new HashMap<Integer, ArrayList<RepastEdge<Object>>>();
+		
 		createInitialNetwork(num_nodes);
 	}
 
@@ -106,7 +120,7 @@ public class ChordNode {
 	
 	// generate a lookup(key, node) only if the node 
 	// is not already processing the same request
-	@ScheduledMethod(start = 1, interval = 0)
+	@ScheduledMethod(start = 1, interval = 6)
 	public void generateLookup() {
 		Node randomNode = null;
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
@@ -128,5 +142,27 @@ public class ChordNode {
 		Integer[] nodes = new Integer[this.nodes.size()];
 		nodes = this.nodes.keySet().toArray(nodes);
 		return this.nodes.get(nodes[selectedNode]);
+	}
+	
+	public void visualizeAnEdge(Integer source, Integer destination) {
+		if(this.edges.get(source) == null) {
+			this.edges.put(source, new ArrayList<>());
+		}
+		
+		ArrayList<RepastEdge<Object>> singleNodeEdges = this.edges.get(source);
+		singleNodeEdges.add(this.network.addEdge(nodes.get(source), nodes.get(destination)));
+	}
+	
+	public void removeAnEdge(Integer source, Integer destination) {
+		ArrayList<RepastEdge<Object>> singleNodeEdges = this.edges.get(source);
+		
+		System.out.println("s" + source + " d:" + destination);
+		for (int i = singleNodeEdges.size() -1; i >= 0; i--) {
+			RepastEdge<Object> edge = singleNodeEdges.get(i);
+			if(edge.getTarget().equals(this.nodes.get(destination))) {
+				network.removeEdge(edge);
+				singleNodeEdges.remove(i);
+			}
+		}
 	}
 }

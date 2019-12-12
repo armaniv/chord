@@ -1,13 +1,12 @@
 package chord;
 
-import java.util.Random;
-
 import chord.SchedulableActions.FailCheck;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.PriorityType;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.space.graph.Network;
 
 public class Node {
 	private Integer id;
@@ -97,6 +96,7 @@ public class Node {
 		Message lookupMessage = new Message(MessageType.LOOKUP, this.id, message.getSuccessor());
 		lookupMessage.setLookupKey(message.getLookupKey());
 		sendLookup(lookupMessage);
+		this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 		System.out.println("Node " + this.id.toString() + " sent LOOKUP(" + message.getLookupKey() +") to " + message.getSuccessor());
 	}
 	
@@ -104,6 +104,7 @@ public class Node {
 	public void onFoundKey(Message message) {
 		Lookup lookup = this.pendingLookups.removeLookup(message.getLookupKey());
 		this.signalLookupResolved(lookup);
+		this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 	}
 
 	public Integer findSuccessor(Integer id) {
@@ -169,6 +170,7 @@ public class Node {
 		this.pendingLookups.addLookup(lookup);
 		scheduleFailCheck(lookup, destNodeId);
 		this.router.send(lookupMessage);
+		this.masterNode.visualizeAnEdge(this.id, destNodeId);
 	}
 	
 	private void signalLookupResolved(Lookup lookup) {
@@ -231,6 +233,18 @@ public class Node {
 		if (this.predecessor == null || insideInterval(nPrime, this.predecessor, this.id)) {
 			this.predecessor = nPrime;
 		}
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (obj == this)
+			return true;
+		if (!(obj instanceof Node))
+			return false;
+		Node o = (Node) obj;
+		return o.getId().equals(this.id);
 	}
 	
 	

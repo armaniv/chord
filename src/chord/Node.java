@@ -147,7 +147,6 @@ public class Node {
 		if (insideInterval(lookupKey, this.predecessor, this.id+1)) {
 			Lookup lookup = new Lookup(lookupKey);
 			lookup.addNodeToPath(this.id);
-			lookup.setOutcome(this.id);
 			signalLookupResolved(lookup);
 			System.out.println("Node " + this.id.toString() + " resolved LOOKUP(" +lookupKey+") by ITSELF ");
 		}else {
@@ -181,12 +180,12 @@ public class Node {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		ScheduleParameters scheduleParameters = 
 				ScheduleParameters.createOneTime(schedule.getTickCount() + 5, PriorityType.RANDOM);
-		schedule.schedule(scheduleParameters, new FailCheck(this, lookup, destinationNodeId));
+		schedule.schedule(scheduleParameters, new FailCheck(this, lookup.getKey(), destinationNodeId));
 	}
 	
-	public void failCheck(Lookup lookup, Integer nodeIdToCheck) {
+	public void failCheck(Integer lookupKey, Integer nodeIdToCheck) {
 		// UNCOMPLETED
-		if (this.pendingLookups.isPathBroken(nodeIdToCheck, lookup.getKey())) {
+		if (this.pendingLookups.isPathBroken(nodeIdToCheck, lookupKey)) {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> CRASHED");
 		}else {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> OK");

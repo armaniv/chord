@@ -20,17 +20,17 @@ public class SchedulableActions {
 	
 	public static class FailCheck implements IAction {
 		private Node node;
-		private Lookup lookup;
+		private Integer lookupKey;
 		private Integer nodeIdToCheck;
 
-		public FailCheck(Node node, Lookup lookup, Integer nodeIdToCheck) {
-			this.lookup = lookup;
+		public FailCheck(Node node, Integer lookupKey, Integer nodeIdToCheck) {
+			this.lookupKey = lookupKey;
 			this.node = node;
 			this.nodeIdToCheck = nodeIdToCheck;
 		}
 
 		public void execute() {
-			this.node.failCheck(lookup, nodeIdToCheck);
+			this.node.failCheck(lookupKey, nodeIdToCheck);
 		}
 	}
 }

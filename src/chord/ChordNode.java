@@ -21,12 +21,12 @@ public class ChordNode {
 	private Router router;
 	HashMap<Integer, Node> nodes = new HashMap<Integer, Node>();
 
-	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_init_nodes, int num_total_nodes) {
+	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes) {
 		this.context = context;
 		this.space = space;
 		this.rnd = new Random();
 		this.router = new Router();
-		createInitialNetwork(num_init_nodes);
+		createInitialNetwork(num_nodes);
 	}
 
 	private void createInitialNetwork(int num_init_nodes) {

@@ -21,10 +21,10 @@ public class ChordBuilder implements ContextBuilder<Object> {
 				new RandomCartesianAdder<Object>(), new repast.simphony.space.continuous.WrapAroundBorders(), 50, 50);
 		
 		Parameters params = RunEnvironment.getInstance().getParameters();
-		int num_init_nodes = params.getInteger("num_init_nodes");
-		int num_total_nodes = params.getInteger("num_total_nodes");
+		int num_nodes = params.getInteger("num_nodes");
+		int churn_rate = params.getInteger("churn_rate");
 				
-		ChordNode chordNode = new ChordNode(context, space, num_init_nodes, num_total_nodes);
+		ChordNode chordNode = new ChordNode(context, space, num_nodes);
 		context.add(chordNode);
 		
 		return context;

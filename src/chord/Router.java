@@ -24,9 +24,10 @@ public class Router {
 	}
 
 	public void send(Message message) {
+		Node sender = nodes.get(message.getSourceNode());
 		Node receiver = nodes.get(message.getDestinationNode());
 		
-		if (receiver != null) {
+		if (receiver != null && sender != null) {
 			ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 			ScheduleParameters scheduleParameters = ScheduleParameters
 					.createOneTime(schedule.getTickCount() + randomDelay(), PriorityType.RANDOM);

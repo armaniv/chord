@@ -53,7 +53,7 @@ public class PendingLookups {
 				}
 			}
 		}
-		return Boolean.FALSE;	// never reached
+		return Boolean.TRUE;	// never reached
 	}
 	
 	public Boolean containsLookupFor(Integer key) {

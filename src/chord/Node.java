@@ -86,14 +86,9 @@ public class Node {
 		
 	}
 	
-	// update pendingLookups
 	// forward the request
 	// schedule timeout check
 	public void onFoundSucc(Message message) {
-		Lookup lookup = this.pendingLookups.getLookup(message.getLookupKey());
-		// lookup cannot be null
-		lookup.addNodeToPath(message.getSourceNode());
-		this.pendingLookups.updateLookup(lookup);
 		Message lookupMessage = new Message(MessageType.LOOKUP, this.id, message.getSuccessor());
 		lookupMessage.setLookupKey(message.getLookupKey());
 		sendLookup(lookupMessage);

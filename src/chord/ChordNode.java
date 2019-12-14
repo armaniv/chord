@@ -157,7 +157,8 @@ public class ChordNode {
 	
 	public void receiveLookupResult(Lookup lookup) {
 		ArrayList<Integer> messagePath = lookup.getMessagePath();
-		System.out.println("Key " + lookup.getKey() + " found at Node " + messagePath.get(messagePath.size()-1));
+		System.out.println("Key " + lookup.getKey() + " found at Node " + messagePath.get(messagePath.size()-1) + 
+				" in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()) );
 	}
 	
 	public Node selectRandomNode() {

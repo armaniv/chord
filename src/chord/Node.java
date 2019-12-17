@@ -112,6 +112,11 @@ public class Node {
 			System.out.println("Node " + this.id + " JOINS with successor=" + message.getSuccessor() + " ; MsgPath: " + Arrays.toString(messagePath.toArray()));
 			break;
 		case FIX_FINGERS:
+			Integer succ = message.getSuccessor();
+			Integer next = request.getNext();
+			Integer old = this.fingerTable[next];
+			this.fingerTable[next] = succ;
+			System.out.println("Node " + this.id + " FIXED FingerTable[" + next + "]=" + old + " -> " + succ);
 			break;
 		default:
 			// should never be here? throw Exception?
@@ -183,6 +188,9 @@ public class Node {
 		Integer destNodeId = findSuccMsg.getDestinationNode();
 		findSuccReq.addNodeToPath(destNodeId);
 		findSuccMsg.setReqId(findSuccReq.getId());
+		if (findSuccMsg.getSubType().equals(MessageType.FIX_FINGERS)){
+			findSuccReq.setNext(this.next);
+		}
 		this.pendingFindSuccReq.addRequest(findSuccReq);
 		scheduleFailCheck(findSuccReq, destNodeId);
 		this.router.send(findSuccMsg);

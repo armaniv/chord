@@ -6,6 +6,7 @@ public class FindSuccReq {
 	private Integer findSuccKey;
 	private Integer id;
 	private ArrayList<Integer> messagePath;
+	private int next;
 	private static int C=0;
 	
 	public FindSuccReq(Integer key)  {
@@ -36,6 +37,14 @@ public class FindSuccReq {
 
 	public void setId(Integer id) {
 		this.id = id;
+	}
+
+	public int getNext() {
+		return next;
+	}
+
+	public void setNext(int next) {
+		this.next = next;
 	}
 
 }

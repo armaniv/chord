@@ -2,7 +2,9 @@ package chord;
 
 public class Message {
 	private MessageType type;
-	private Integer lookupKey;				//the value we are searching for inside the chord ring (default null)
+	private MessageType subType;
+	private Integer key;				//the value we are searching for inside the chord ring (default null)
+	private Integer reqId;
 	private Integer sourceNode;
 	private Integer destinationNode;
 	private Integer successor;				//the next node to contact in order to continuing a lookup  (default null)
@@ -12,6 +14,7 @@ public class Message {
 		this.setType(type);
 		this.setSourceNode(sourceNode);
 		this.setDestinationNode(destinationNode);
+		this.setSubType(null);
 	}
 
 	public MessageType getType() {
@@ -22,12 +25,12 @@ public class Message {
 		this.type = type;
 	}
 
-	public Integer getLookupKey() {
-		return lookupKey;
+	public Integer getKey() {
+		return key;
 	}
 
-	public void setLookupKey(Integer key) {
-		this.lookupKey = Integer.valueOf(key);
+	public void setKey(Integer key) {
+		this.key = Integer.valueOf(key);
 	}
 
 	public Integer getSourceNode() {
@@ -60,5 +63,21 @@ public class Message {
 
 	public void setPredecessor(Integer predecessor) {
 		this.predecessor = predecessor;
+	}
+
+	public MessageType getSubType() {
+		return subType;
+	}
+
+	public void setSubType(MessageType subType) {
+		this.subType = subType;
+	}
+
+	public Integer getReqId() {
+		return reqId;
+	}
+
+	public void setReqId(Integer reqId) {
+		this.reqId = reqId;
 	}
 }

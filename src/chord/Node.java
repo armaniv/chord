@@ -1,6 +1,7 @@
 package chord;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import chord.SchedulableActions.FailCheck;
 import repast.simphony.engine.environment.RunEnvironment;
@@ -15,9 +16,10 @@ public class Node {
 	private Integer[] fingerTable;
 	private Integer successor;
 	private Integer predecessor;
+	private Integer next;
 	private Router router;
 	private ChordNode masterNode;
-	private PendingLookups pendingLookups;
+	private PendingFindSuccReq pendingFindSuccReq;
 	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode) {
@@ -25,86 +27,102 @@ public class Node {
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 		this.router = router;
 		this.masterNode = masterNode;
-		this.pendingLookups = new PendingLookups();
+		this.pendingFindSuccReq = new PendingFindSuccReq();
+		this.next = 0;
 	}
 
 	public void receive(Message message) {
 		
-		switch (message.getType()) {
-				
-			case LOOKUP:
-				//System.out.println("Node " + this.id.toString() + " received LOOKUP("+message.getLookupKey()+") from " + message.getSourceNode());
-				this.onLookup(message);
-				break;
-				
-			case FOUND_KEY:
-				//System.out.println("Node " + this.id.toString() + " received FOUND_KEY("+message.getSourceNode()+") from " + message.getSourceNode());
-				this.onFoundKey(message);
-				break;
-				
-			case FOUND_SUCC:
-				//System.out.println("Node " + this.id.toString() + " received FOUND_SUCC("+message.getSuccessor()+") from " + message.getSourceNode());
-				this.onFoundSucc(message);
-				break;
-				
-			case STABILIZE:
-				//System.out.println("Node " + this.id.toString() + " received STABILIZE from " + message.getSourceNode());
-				this.onStabilize(message);
-				break;
-				
-			case ACK_STABILIZE:
-				//System.out.println("Node " + this.id.toString() + " received ACK_STABILIZE from " + message.getSourceNode());
-				this.onACKStabilize(message);
-				break;
-				
-			case NOTIFY:
-				//System.out.println("Node " + this.id.toString() + " received NOTIFY from " + message.getSourceNode());
-				this.onNotify(message);
-				break;
-	
-			default:
-				// nothing for now (maybe for ever)
-				break;
+		switch (message.getType()) {			
+		case FIND_SUCC:
+			//System.out.println("Node " + this.id.toString() + " received FIND_SUCC("+message.getLookupKey()+") from " + message.getSourceNode());
+			this.onFindSucc(message);
+			break;
+		case FOUND_KEY:
+			//System.out.println("Node " + this.id.toString() + " received FOUND_KEY("+message.getSourceNode()+") from " + message.getSourceNode());
+			this.onFoundKey(message);
+			break;
+		case FOUND_SUCC:
+			//System.out.println("Node " + this.id.toString() + " received FOUND_SUCC("+message.getSuccessor()+") from " + message.getSourceNode());
+			this.onFoundSucc(message);
+			break;
+		case STABILIZE:
+			//System.out.println("Node " + this.id.toString() + " received STABILIZE from " + message.getSourceNode());
+			this.onStabilize(message);
+			break;
+		case ACK_STABILIZE:
+			//System.out.println("Node " + this.id.toString() + " received ACK_STABILIZE from " + message.getSourceNode());
+			this.onACKStabilize(message);
+			break;
+		case NOTIFY:
+			//System.out.println("Node " + this.id.toString() + " received NOTIFY from " + message.getSourceNode());
+			this.onNotify(message);
+			break;
+		default:
+			// nothing for now (maybe for ever), throw Exception?
+			break;
 		}
 	}
 	
-	public void onLookup(Message message) {
-		if (insideInterval(message.getLookupKey(), this.predecessor, this.id+1)) {
+	public void onFindSucc(Message message) {
+		if (insideInterval(message.getKey(), this.predecessor, this.id+1)) {
 			Message ack = new Message(MessageType.FOUND_KEY, this.id, message.getSourceNode());
-			ack.setLookupKey(message.getLookupKey());
+			ack.setKey(message.getKey());
+			ack.setSubType(message.getSubType());
 			ack.setSuccessor(this.id);
+			ack.setReqId(message.getReqId());
 			router.send(ack);
-			System.out.println("Node " + this.id.toString() + " sent FOUND_KEY("+message.getLookupKey()+") to " + message.getSourceNode().toString());
+			System.out.println("Node " + this.id.toString() + " sent FOUND_KEY("+message.getKey()+") to " + message.getSourceNode().toString());
 		}else {
-			Integer successor = findSuccessor(message.getLookupKey());
+			Integer successor = findSuccessor(message.getKey());
 			Message ack = new Message(MessageType.FOUND_SUCC, this.id, message.getSourceNode());
-			ack.setLookupKey(message.getLookupKey());
+			ack.setKey(message.getKey());
+			ack.setSubType(message.getSubType());
 			ack.setSuccessor(successor);
+			ack.setReqId(message.getReqId());
 			this.router.send(ack);
 			System.out.println("Node " + this.id.toString() + " sent FOUND_SUCC("+ack.getSuccessor()+") to " + message.getSourceNode().toString());
 		}
-		
 	}
 	
 	// forward the request
 	// schedule timeout check
 	public void onFoundSucc(Message message) {
-		Message lookupMessage = new Message(MessageType.LOOKUP, this.id, message.getSuccessor());
-		lookupMessage.setLookupKey(message.getLookupKey());
-		sendLookup(lookupMessage);
+		Message findSuccMsg = new Message(MessageType.FIND_SUCC, this.id, message.getSuccessor());
+		findSuccMsg.setSubType(message.getSubType());
+		findSuccMsg.setKey(message.getKey());
+		findSuccMsg.setReqId(message.getReqId());
+		sendFindSucc(findSuccMsg);
 		this.masterNode.removeAnEdge(this.id, message.getSourceNode());
-		System.out.println("Node " + this.id.toString() + " sent LOOKUP(" + message.getLookupKey() +") to " + message.getSuccessor());
+		System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(" + message.getKey() +") to " + message.getSuccessor());
 	}
 	
 	// remove pendingLookup and deliver it to master
 	public void onFoundKey(Message message) {
-		Lookup lookup = this.pendingLookups.removeLookup(message.getLookupKey());
-		this.signalLookupResolved(lookup);
+		FindSuccReq request = this.pendingFindSuccReq.removeRequest(message.getReqId());
+		ArrayList<Integer> messagePath = request.getMessagePath();
+		switch (message.getSubType()){
+		case LOOKUP:
+			this.signalLookupResolved(request);
+			System.out.println("Key " + request.getFindSuccKey() + " found at Node " + messagePath.get(messagePath.size()-1) + 
+					" in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()) );
+			break;
+		case JOIN:
+			this.successor = message.getSuccessor();
+			System.out.println("Node " + this.id + " JOINS with successor=" + message.getSuccessor() + " ; MsgPath: " + Arrays.toString(messagePath.toArray()));
+			break;
+		case FIX_FINGERS:
+			break;
+		default:
+			// should never be here? throw Exception?
+			break;
+		}
 		this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 	}
 
 	public Integer findSuccessor(Integer id) {
 		// successor contained inside the interval (add + 1 to successor)
+		
 		if (insideInterval(id, this.id, successor + 1)) {
 			return successor;
 		}
@@ -117,6 +135,7 @@ public class Node {
 
 	public Integer closestPrecedingNode(Integer id) {
 		for (int i = fingerTable.length - 1; i >= 0; i--) {
+			if (fingerTable[i] == null) continue;
 			int entry = fingerTable[i];
 			
 			if (insideInterval(entry, this.id, id)) {
@@ -140,45 +159,46 @@ public class Node {
 		return false;
 	}
 
-	public void startLookup(Integer lookupKey) {
-		if (insideInterval(lookupKey, this.predecessor, this.id+1)) {
-			Lookup lookup = new Lookup(lookupKey);
-			lookup.addNodeToPath(this.id);
-			signalLookupResolved(lookup);
-			System.out.println("Node " + this.id.toString() + " resolved LOOKUP(" +lookupKey+") by ITSELF ");
-		}else {
-			
-			Integer successor = findSuccessor(lookupKey);
-			Message lookupMessage = new Message(MessageType.LOOKUP, this.id, successor);
-			lookupMessage.setLookupKey(lookupKey);
-			sendLookup(lookupMessage);
-			System.out.println("Node " + this.id.toString() + " sent LOOKUP(" + lookupMessage.getLookupKey() +") to " + lookupMessage.getDestinationNode().toString());
+	public void lookup(Integer findSuccKey) {
+		if (insideInterval(findSuccKey, this.predecessor, this.id+1)) {
+			FindSuccReq findSuccReq = new FindSuccReq(findSuccKey);
+			findSuccReq.addNodeToPath(this.id);
+			signalLookupResolved(findSuccReq);
+			System.out.println("Node " + this.id.toString() + " resolved FIND_SUCC(" +findSuccKey+") by ITSELF ");
+		}else {	
+			Integer successor = findSuccessor(findSuccKey);
+			Message findSuccMsg = new Message(MessageType.FIND_SUCC, this.id, successor);
+			findSuccMsg.setSubType(MessageType.LOOKUP);
+			findSuccMsg.setKey(findSuccKey);
+			sendFindSucc(findSuccMsg);
+			System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(" + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
 		}
 	}
 	
-	public void sendLookup(Message lookupMessage) {
-		Lookup lookup = this.pendingLookups.getLookup(lookupMessage.getLookupKey());
-		if (lookup == null) {
-			lookup = new Lookup(lookupMessage.getLookupKey());
+	public void sendFindSucc(Message findSuccMsg) {
+		FindSuccReq findSuccReq = this.pendingFindSuccReq.getRequest(findSuccMsg.getReqId());
+		if (findSuccReq == null) {
+			findSuccReq = new FindSuccReq(findSuccMsg.getKey());
 		}
-		Integer destNodeId = lookupMessage.getDestinationNode();
-		lookup.addNodeToPath(destNodeId);
-		this.pendingLookups.addLookup(lookup);
-		scheduleFailCheck(lookup, destNodeId);
-		this.router.send(lookupMessage);
+		Integer destNodeId = findSuccMsg.getDestinationNode();
+		findSuccReq.addNodeToPath(destNodeId);
+		findSuccMsg.setReqId(findSuccReq.getId());
+		this.pendingFindSuccReq.addRequest(findSuccReq);
+		scheduleFailCheck(findSuccReq, destNodeId);
+		this.router.send(findSuccMsg);
 		this.masterNode.visualizeAnEdge(this.id, destNodeId);
 	}
 	
-	private void signalLookupResolved(Lookup lookup) {
+	private void signalLookupResolved(FindSuccReq lookup) {
 		this.masterNode.receiveLookupResult(lookup);
 	}
 	
 	
-	private void scheduleFailCheck(Lookup lookup, Integer destinationNodeId) {
+	private void scheduleFailCheck(FindSuccReq request, Integer destinationNodeId) {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		ScheduleParameters scheduleParameters = 
 				ScheduleParameters.createOneTime(schedule.getTickCount() + 5, PriorityType.RANDOM);
-		this.actions.add(schedule.schedule(scheduleParameters, new FailCheck(this, lookup.getKey(), destinationNodeId)));
+		this.actions.add(schedule.schedule(scheduleParameters, new FailCheck(this, request.getId(), destinationNodeId)));
 	}
 	
 	public void removeAllSchedule() {
@@ -190,23 +210,47 @@ public class Node {
 	
 	public void failCheck(Integer lookupKey, Integer nodeIdToCheck) {
 		// UNCOMPLETED
-		if (this.pendingLookups.isPathBroken(nodeIdToCheck, lookupKey)) {
+		if (this.pendingFindSuccReq.isPathBroken(nodeIdToCheck, lookupKey)) {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> CRASHED");
 		}else {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> OK");
 		}
 	}
 	
-	// master should check this before sending LOOKUP requests to nodes
-	public Boolean isAlreadyProcessingLookupFor(Integer key) {
-		return this.pendingLookups.containsLookupFor(key);
+	public void join(Integer nodeId) {
+		this.predecessor = null;
+		Message joinMessage = new Message(MessageType.FIND_SUCC, this.id, nodeId);
+		joinMessage.setKey(this.id);
+		joinMessage.setSubType(MessageType.JOIN);
+		sendFindSucc(joinMessage);
+		System.out.println("Node " + this.id.toString() + " sends FIND_SUCC(JOIN,"+this.id.toString()+") to " + nodeId.toString());
 	}
 	
+	@ScheduledMethod(start = 5, interval = 5)
+	public void fixFingers() {
+		if (this.successor == null) return; // still JOINing
+		this.next++;
+		if (this.next > this.fingerTable.length) {
+			this.next = 1;
+		}
+		Integer key = this.id + (int) Math.pow(2, next-1);
+		Integer succ = findSuccessor(key);
+		if (succ.equals(this.id)) {
+			succ = this.successor;
+		}
+		Message fixFingersMessage = new Message(MessageType.FIND_SUCC, this.id, succ);
+		fixFingersMessage.setSubType(MessageType.FIX_FINGERS);
+		fixFingersMessage.setKey(key);
+		sendFindSucc(fixFingersMessage);
+		System.out.println("Node " + this.id + " sends FIND_SUCC(FIX_FINGERS,"+key+") to " + succ);
+	}
 	
 	@ScheduledMethod(start = 5, interval = 5)
 	public void stabilize(){
-		Message msgStabilize = new Message(MessageType.STABILIZE, this.id, this.successor);
-		this.router.send(msgStabilize);	
+		if (this.successor != null) {
+			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, this.successor);
+			this.router.send(msgStabilize);		
+		}
 	}
 	
 	public void onStabilize(Message message) {

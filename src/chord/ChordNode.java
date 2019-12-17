@@ -118,21 +118,32 @@ public class ChordNode {
 		space.moveTo(node, x, y);
 	}
 	
-	// generate a lookup(key, node) only if the node 
-	// is not already processing the same request
-	@ScheduledMethod(start = 1, interval = 6)
+	// generate a random lookup(key, node) 
+	// node is the node responsible for the lookup
+	//@ScheduledMethod(start = 1, interval = 0)
 	public void generateLookup() {
-		Node randomNode = null;
+		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		Boolean isAlreadyProcessingThisKey = Boolean.TRUE;
-		while (isAlreadyProcessingThisKey) {
-			randomNode = selectRandomNode();
-			isAlreadyProcessingThisKey = randomNode.isAlreadyProcessingLookupFor(lookupKey);
-		}
-		randomNode.startLookup(lookupKey);
+		randomNode.lookup(lookupKey);
 	}
 	
-	@ScheduledMethod(start = 8, interval = 10, priority = 100)
+	@ScheduledMethod(start = 5, interval = 0)
+	public void generateJoin() {
+		int id = -1;
+		while(id == -1 || this.nodes.containsKey(id)) {
+			id = rnd.nextInt(SPACEDIMENSION);
+		}
+		Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
+		this.nodes.put(id, node);
+		this.context.add(node);
+		this.router.addNode(node);
+		visualizeNode(node);
+		node.join(selectRandomNode().getId());
+	}
+	
+	
+	
+	//@ScheduledMethod(start = 8, interval = 10, priority = 100)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
 		
@@ -155,10 +166,8 @@ public class ChordNode {
 		}
 	}
 	
-	public void receiveLookupResult(Lookup lookup) {
-		ArrayList<Integer> messagePath = lookup.getMessagePath();
-		System.out.println("Key " + lookup.getKey() + " found at Node " + messagePath.get(messagePath.size()-1) + 
-				" in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()) );
+	public void receiveLookupResult(FindSuccReq lookup) {
+		// ToDo: analytics
 	}
 	
 	public Node selectRandomNode() {

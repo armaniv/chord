@@ -13,7 +13,7 @@
 									
 		/>
 				<parameter name="num_nodes" displayName="Number of nodes" type="int" 
-						defaultValue="20" 
+						defaultValue="3" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

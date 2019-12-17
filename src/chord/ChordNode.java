@@ -120,25 +120,29 @@ public class ChordNode {
 	
 	// generate a random lookup(key, node) 
 	// node is the node responsible for the lookup
-	//@ScheduledMethod(start = 1, interval = 0)
+	@ScheduledMethod(start = 1, interval = 5)
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
 		randomNode.lookup(lookupKey);
 	}
 	
-	@ScheduledMethod(start = 5, interval = 0)
+	@ScheduledMethod(start = 4, interval = 0)
 	public void generateJoin() {
 		int id = -1;
 		while(id == -1 || this.nodes.containsKey(id)) {
 			id = rnd.nextInt(SPACEDIMENSION);
 		}
 		Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
-		this.nodes.put(id, node);
+		
 		this.context.add(node);
 		this.router.addNode(node);
 		visualizeNode(node);
-		node.join(selectRandomNode().getId());
+		Node selNode = selectRandomNode();
+		this.nodes.put(id, node);
+		
+		System.out.println("Node " + id + " joining");
+		node.join(selNode.getId());
 	}
 	
 	

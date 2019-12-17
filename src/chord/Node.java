@@ -93,7 +93,7 @@ public class Node {
 		findSuccMsg.setKey(message.getKey());
 		findSuccMsg.setReqId(message.getReqId());
 		sendFindSucc(findSuccMsg);
-		this.masterNode.removeAnEdge(this.id, message.getSourceNode());
+		//this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 		System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(" + message.getKey() +") to " + message.getSuccessor());
 	}
 	
@@ -106,6 +106,7 @@ public class Node {
 			this.signalLookupResolved(request);
 			System.out.println("Key " + request.getFindSuccKey() + " found at Node " + messagePath.get(messagePath.size()-1) + 
 					" in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()) );
+			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
 			this.successor = message.getSuccessor();
@@ -122,7 +123,6 @@ public class Node {
 			// should never be here? throw Exception?
 			break;
 		}
-		this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 	}
 
 	public Integer findSuccessor(Integer id) {
@@ -150,7 +150,7 @@ public class Node {
 		return this.id;
 	}
 
-	private boolean insideInterval(Integer value, Integer a, Integer b) {
+	private boolean insideInterval(Integer value, Integer a, Integer b) {		
 		if (value > a && value < b) {
 			return true;
 		}
@@ -194,7 +194,10 @@ public class Node {
 		this.pendingFindSuccReq.addRequest(findSuccReq);
 		scheduleFailCheck(findSuccReq, destNodeId);
 		this.router.send(findSuccMsg);
-		this.masterNode.visualizeAnEdge(this.id, destNodeId);
+		
+		if (findSuccMsg.getSubType().equals(MessageType.LOOKUP)){
+			this.masterNode.visualizeAnEdge(this.id, destNodeId);
+		}
 	}
 	
 	private void signalLookupResolved(FindSuccReq lookup) {
@@ -238,7 +241,7 @@ public class Node {
 	public void fixFingers() {
 		if (this.successor == null) return; // still JOINing
 		this.next++;
-		if (this.next > this.fingerTable.length) {
+		if (this.next >= this.fingerTable.length) {
 			this.next = 1;
 		}
 		Integer key = this.id + (int) Math.pow(2, next-1);

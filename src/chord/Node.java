@@ -119,7 +119,7 @@ public class Node {
 			System.out.println("Node " + this.id + " FIXED FingerTable[" + next + "]=" + old + " -> " + succ);
 			break;
 		default:
-			// should never be here? throw Exception?
+			// should never be here. throw Exception?
 			break;
 		}
 		this.masterNode.removeAnEdge(this.id, message.getSourceNode());

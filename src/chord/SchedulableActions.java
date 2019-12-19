@@ -14,12 +14,13 @@ public class SchedulableActions {
 		}
 
 		public void execute() {
-			try{
+			/*try{
 				this.node.receive(message);
 			}
 			catch (Exception e){
-				System.out.println("Destination not reacable");
-			}
+				System.out.println("Destination not reachable");
+			}*/
+			this.node.receive(message);
 		}
 	}
 

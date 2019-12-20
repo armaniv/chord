@@ -33,4 +33,33 @@ public class SchedulableActions {
 			this.node.failCheck(reqId, nodeIdToCheck);
 		}
 	}
+	
+	public static class SetSuccessor implements IAction {
+		private Node node;
+		private Integer succ;
+
+		public SetSuccessor(Node node, Integer succ) {
+			this.succ = succ;
+			this.node = node;
+		}
+
+		public void execute() {
+			this.node.setSuccessor(this.succ);
+		}
+	}
+	
+	public static class MasterRetryLookup implements IAction {
+		private ChordNode master;
+		private Integer key;
+		private Integer nodeId;
+
+		public MasterRetryLookup(ChordNode master, Integer key, Integer nodeId) {
+			this.key = key;
+			this.master = master;
+		}
+
+		public void execute() {
+			this.master.retryLookup(nodeId, key);
+		}
+	}
 }

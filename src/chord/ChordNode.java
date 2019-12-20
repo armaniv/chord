@@ -7,7 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import chord.SchedulableActions.MasterRetryLookup;
 import repast.simphony.context.Context;
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ISchedule;
+import repast.simphony.engine.schedule.PriorityType;
+import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.graph.Network;
@@ -107,6 +112,8 @@ public class ChordNode {
 				node.setPredecessor(predecessor);
 			}
 			
+			// already subscribed peers
+			node.setState(NodeState.SUBSCRIBED);		
 			predecessor = node.getId();
 			counter++;
 		}
@@ -129,12 +136,13 @@ public class ChordNode {
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		while(!randomNode.lookup(lookupKey)) {
+		while(randomNode.getState() == NodeState.NEW) {
 			randomNode = selectRandomNode();
 		}
+		randomNode.lookup(lookupKey);
 	}
 	
-	@ScheduledMethod(start = 4, interval = 10)
+	@ScheduledMethod(start = 5, interval = 30)
 	public void generateJoin() {
 		int id = -1;
 		while(id == -1 || this.nodes.containsKey(id)) {
@@ -146,6 +154,9 @@ public class ChordNode {
 		this.router.addNode(node);
 		visualizeNode(node);
 		Node selNode = selectRandomNode();
+		while (selNode.getState() == NodeState.NEW) {
+			selNode = selectRandomNode();
+		}
 		this.nodes.put(id, node);
 		
 		System.out.println("Node " + id + " joining");
@@ -182,11 +193,22 @@ public class ChordNode {
 		this.successfulRequests.add(req);
 	}
 	
-	// count the req as failed, and tell the node to generate another findSucc for that key
+	// count the req as failed, and schedule an action to 
+	// force the node to retry later a findSucc request for that key
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
 		this.unsuccessfulRequests.add(req);
-		Node n = this.nodes.get(resolverNodeId);
-		n.lookup(req.getFindSuccKey());
+		
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+		ScheduleParameters scheduleParameters = 
+				ScheduleParameters.createOneTime(schedule.getTickCount() + 5, PriorityType.RANDOM);
+		schedule.schedule(scheduleParameters, new MasterRetryLookup(this, req.getFindSuccKey(), resolverNodeId));
+	}
+	
+	public void retryLookup(Integer nodeId, Integer key) {
+		Node node = this.nodes.get(nodeId);
+		if (node != null) {
+			node.lookup(key);
+		}
 	}
 	
 	public Node selectRandomNode() {

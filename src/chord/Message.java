@@ -62,7 +62,7 @@ public class Message {
 	}
 
 	public void setPredecessor(Integer predecessor) {
-		this.predecessor = predecessor;
+		this.predecessor = Integer.valueOf(predecessor);
 	}
 
 	public MessageType getSubType() {
@@ -78,6 +78,6 @@ public class Message {
 	}
 
 	public void setReqId(Integer reqId) {
-		this.reqId = reqId;
+		this.reqId = Integer.valueOf(reqId);
 	}
 }

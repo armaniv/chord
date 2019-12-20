@@ -14,29 +14,23 @@ public class SchedulableActions {
 		}
 
 		public void execute() {
-			/*try{
-				this.node.receive(message);
-			}
-			catch (Exception e){
-				System.out.println("Destination not reachable");
-			}*/
 			this.node.receive(message);
 		}
 	}
 
 	public static class FailCheck implements IAction {
 		private Node node;
-		private Integer lookupKey;
+		private Integer reqId;
 		private Integer nodeIdToCheck;
 
-		public FailCheck(Node node, Integer lookupKey, Integer nodeIdToCheck) {
-			this.lookupKey = lookupKey;
+		public FailCheck(Node node, Integer reqId, Integer nodeIdToCheck) {
+			this.reqId = reqId;
 			this.node = node;
 			this.nodeIdToCheck = nodeIdToCheck;
 		}
 
 		public void execute() {
-			this.node.failCheck(lookupKey, nodeIdToCheck);
+			this.node.failCheck(reqId, nodeIdToCheck);
 		}
 	}
 }

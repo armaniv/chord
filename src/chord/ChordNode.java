@@ -27,6 +27,9 @@ public class ChordNode {
 	private Random rnd; // Java random, approximately uniform distributed
 	private HashMap<Integer, Node> nodes; 
 	private HashMap<Integer, ArrayList<RepastEdge<Object>>> edges;
+	
+	private ArrayList<FindSuccReq> successfulRequests;
+	private ArrayList<FindSuccReq> unsuccessfulRequests;
 
 	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, int churn_rate) {
 		this.context = context;
@@ -39,6 +42,8 @@ public class ChordNode {
 		this.rnd = new Random();
 		this.nodes = new HashMap<Integer, Node>();
 		this.edges = new HashMap<Integer, ArrayList<RepastEdge<Object>>>();
+		this.successfulRequests = new ArrayList<FindSuccReq>();
+		this.unsuccessfulRequests = new ArrayList<FindSuccReq>();
 		
 		createInitialNetwork(num_nodes);
 	}
@@ -124,10 +129,12 @@ public class ChordNode {
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		randomNode.lookup(lookupKey);
+		while(!randomNode.lookup(lookupKey)) {
+			randomNode = selectRandomNode();
+		}
 	}
 	
-	@ScheduledMethod(start = 4, interval = 0)
+	@ScheduledMethod(start = 4, interval = 10)
 	public void generateJoin() {
 		int id = -1;
 		while(id == -1 || this.nodes.containsKey(id)) {
@@ -147,7 +154,7 @@ public class ChordNode {
 	
 	
 	
-	//@ScheduledMethod(start = 8, interval = 10, priority = 100)
+	@ScheduledMethod(start = 8, interval = 10, priority = 100)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
 		
@@ -170,8 +177,16 @@ public class ChordNode {
 		}
 	}
 	
-	public void receiveLookupResult(FindSuccReq lookup) {
-		// ToDo: analytics
+	public void signalSuccessuful(FindSuccReq req) {
+		// ToDo: analytics, just store for now
+		this.successfulRequests.add(req);
+	}
+	
+	// count the req as failed, and tell the node to generate another findSucc for that key
+	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
+		this.unsuccessfulRequests.add(req);
+		Node n = this.nodes.get(resolverNodeId);
+		n.lookup(req.getFindSuccKey());
 	}
 	
 	public Node selectRandomNode() {

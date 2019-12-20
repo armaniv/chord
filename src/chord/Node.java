@@ -71,10 +71,16 @@ public class Node {
 			ack.setSubType(message.getSubType());
 			ack.setSuccessor(this.id);
 			ack.setReqId(message.getReqId());
+			// if received from a JOIN, this node is my predecessor
+			if (message.getSubType() == MessageType.JOIN) {
+				ack.setPredecessor(this.predecessor);
+				this.setPredecessor(message.getSourceNode());
+			}
 			router.send(ack);
 			System.out.println("Node " + this.id.toString() + " sent FOUND_KEY("+message.getKey()+") to " + message.getSourceNode().toString());
 		}else {
 			Integer successor = findSuccessor(message.getKey());
+			if (successor.equals(this.id)) successor = this.successor;
 			Message ack = new Message(MessageType.FOUND_SUCC, this.id, message.getSourceNode());
 			ack.setKey(message.getKey());
 			ack.setSubType(message.getSubType());
@@ -83,6 +89,31 @@ public class Node {
 			this.router.send(ack);
 			System.out.println("Node " + this.id.toString() + " sent FOUND_SUCC("+ack.getSuccessor()+") to " + message.getSourceNode().toString());
 		}
+	}
+	
+	public Integer findSuccessor(Integer id) {
+		// successor contained inside the interval (add + 1 to successor)
+		
+		if (insideInterval(id, this.id, successor + 1)) {
+			return successor;
+		}
+		else
+		{
+			Integer cpNode = closestPrecedingNode(id);
+			return cpNode;
+		}
+	}
+	
+	public Integer closestPrecedingNode(Integer id) {
+		for (int i = fingerTable.length - 1; i >= 0; i--) {
+			if (fingerTable[i] == null) continue;
+			int entry = fingerTable[i];
+			
+			if (insideInterval(entry, this.id, id)) {
+				return entry;
+			}
+		}
+		return this.id;
 	}
 	
 	// forward the request
@@ -103,14 +134,15 @@ public class Node {
 		ArrayList<Integer> messagePath = request.getMessagePath();
 		switch (message.getSubType()){
 		case LOOKUP:
-			this.signalLookupResolved(request);
+			this.masterNode.signalSuccessuful(request);
 			System.out.println("Key " + request.getFindSuccKey() + " found at Node " + messagePath.get(messagePath.size()-1) + 
 					" in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()) );
 			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
 			this.successor = message.getSuccessor();
-			System.out.println("Node " + this.id + " JOINS with successor=" + message.getSuccessor() + " ; MsgPath: " + Arrays.toString(messagePath.toArray()));
+			this.predecessor = message.getPredecessor();
+			System.out.println("Node " + this.id + " JOINS with successor=" + message.getSuccessor() + " and predecessor="+ message.getPredecessor() + " ; MsgPath: " + Arrays.toString(messagePath.toArray()));
 			break;
 		case FIX_FINGERS:
 			Integer succ = message.getSuccessor();
@@ -123,31 +155,6 @@ public class Node {
 			// should never be here. throw Exception?
 			break;
 		}
-	}
-
-	public Integer findSuccessor(Integer id) {
-		// successor contained inside the interval (add + 1 to successor)
-		
-		if (insideInterval(id, this.id, successor + 1)) {
-			return successor;
-		}
-		else
-		{
-			Integer cpNode = closestPrecedingNode(id);
-			return cpNode;
-		}
-	}
-
-	public Integer closestPrecedingNode(Integer id) {
-		for (int i = fingerTable.length - 1; i >= 0; i--) {
-			if (fingerTable[i] == null) continue;
-			int entry = fingerTable[i];
-			
-			if (insideInterval(entry, this.id, id)) {
-				return entry;
-			}
-		}
-		return this.id;
 	}
 
 	private boolean insideInterval(Integer value, Integer a, Integer b) {		
@@ -164,11 +171,11 @@ public class Node {
 		return false;
 	}
 
-	public void lookup(Integer findSuccKey) {
+	public boolean lookup(Integer findSuccKey) {
 		if (insideInterval(findSuccKey, this.predecessor, this.id+1)) {
 			FindSuccReq findSuccReq = new FindSuccReq(findSuccKey);
 			findSuccReq.addNodeToPath(this.id);
-			signalLookupResolved(findSuccReq);
+			this.masterNode.signalSuccessuful(findSuccReq);
 			System.out.println("Node " + this.id.toString() + " resolved FIND_SUCC(" +findSuccKey+") by ITSELF ");
 		}else {	
 			Integer successor = findSuccessor(findSuccKey);
@@ -178,6 +185,7 @@ public class Node {
 			sendFindSucc(findSuccMsg);
 			System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(" + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
 		}
+		return true;
 	}
 	
 	public void sendFindSucc(Message findSuccMsg) {
@@ -198,12 +206,7 @@ public class Node {
 		if (findSuccMsg.getSubType().equals(MessageType.LOOKUP)){
 			this.masterNode.visualizeAnEdge(this.id, destNodeId);
 		}
-	}
-	
-	private void signalLookupResolved(FindSuccReq lookup) {
-		this.masterNode.receiveLookupResult(lookup);
-	}
-	
+	}	
 	
 	private void scheduleFailCheck(FindSuccReq request, Integer destinationNodeId) {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
@@ -219,10 +222,12 @@ public class Node {
 		}
 	}
 	
-	public void failCheck(Integer lookupKey, Integer nodeIdToCheck) {
-		// UNCOMPLETED
-		if (this.pendingFindSuccReq.isPathBroken(nodeIdToCheck, lookupKey)) {
+	public void failCheck(Integer reqId, Integer nodeIdToCheck) {
+		if (this.pendingFindSuccReq.isPathBroken(nodeIdToCheck, reqId)) {
+			FindSuccReq unsuccessfulReq = this.pendingFindSuccReq.getRequest(reqId);
+			this.masterNode.signalUnsuccessful(unsuccessfulReq, this.id);
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> CRASHED");
+			System.out.println("FindSucc(" + unsuccessfulReq.getFindSuccKey() + ") FAILED");
 		}else {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> OK");
 		}
@@ -277,8 +282,8 @@ public class Node {
 		}
 		
 		//successor.notify(n);
-		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, this.successor);
-		this.router.send(notifyMsg);
+		//Message notifyMsg = new Message(MessageType.NOTIFY, this.id, this.successor);
+		//this.router.send(notifyMsg);
 	}
 	
 	public void onNotify(Message message) {

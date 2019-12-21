@@ -61,7 +61,7 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
+			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.SUBSCRIBED);
 			this.nodes.put(id, node);
 			this.context.add(node);
 			visualizeNode(node);
@@ -148,7 +148,7 @@ public class ChordNode {
 		while(id == -1 || this.nodes.containsKey(id)) {
 			id = rnd.nextInt(SPACEDIMENSION);
 		}
-		Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
+		Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.NEW);
 		
 		this.context.add(node);
 		this.router.addNode(node);

@@ -7,13 +7,13 @@
 									
 		/>
 				<parameter name="churn_rate" displayName="Percent churn rate" type="int" 
-						defaultValue="0" 
+						defaultValue="5" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="num_nodes" displayName="Number of nodes" type="int" 
-						defaultValue="5" 
+						defaultValue="30" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

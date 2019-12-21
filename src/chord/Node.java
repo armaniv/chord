@@ -24,14 +24,14 @@ public class Node {
 	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 	private NodeState state;
 
-	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode) {
+	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode, NodeState state) {
 		this.id = id;
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 		this.router = router;
 		this.masterNode = masterNode;
 		this.pendingFindSuccReq = new PendingFindSuccReq();
 		this.next = 0;
-		this.setState(NodeState.NEW);
+		this.setState(state);
 	}
 
 	public void receive(Message message) {
@@ -91,6 +91,9 @@ public class Node {
 	
 	public Integer findSuccessor(Integer id) {
 		// successor contained inside the interval (add + 1 to successor)
+		if(this.predecessor==null) {
+			System.out.println(this.id + " " + this.successor + " kkkkkkkkkkkkkkkkkkkkkk ");
+		}
 		
 		if (insideInterval(id, this.id, successor + 1)) {
 			return successor;
@@ -122,7 +125,9 @@ public class Node {
 		findSuccMsg.setKey(message.getKey());
 		findSuccMsg.setReqId(message.getReqId());
 		sendFindSucc(findSuccMsg);
-		//this.masterNode.removeAnEdge(this.id, message.getSourceNode());
+		if (findSuccMsg.getSubType().equals(MessageType.LOOKUP)){
+			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
+		}
 		System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(" + message.getKey() +") to " + message.getSuccessor());
 	}
 	
@@ -155,7 +160,10 @@ public class Node {
 	}
 
 	private boolean insideInterval(Integer value, Integer a, Integer b) {		
-		if (this.getState() == NodeState.NEW) return false;
+		if (value == null || a == null || b == null) {
+			return false;
+		}
+		
 		if (value > a && value < b) {
 			return true;
 		}
@@ -248,7 +256,7 @@ public class Node {
 		if (this.next >= this.fingerTable.length) {
 			this.next = 1;
 		}
-		Integer key = this.id + (int) Math.pow(2, next-1);
+		Integer key = (this.id + (int) Math.pow(2, next-1)) % (int) Math.pow(2, fingerTable.length) ;
 		Integer succ = findSuccessor(key);
 		if (succ.equals(this.id)) {
 			succ = this.successor;
@@ -262,7 +270,7 @@ public class Node {
 	
 	@ScheduledMethod(start = 5, interval = 5)
 	public void stabilize(){
-		if (this.state != NodeState.NEW) {
+		if (this.successor != null) {
 			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, this.successor);
 			this.router.send(msgStabilize);		
 		}
@@ -270,22 +278,27 @@ public class Node {
 	
 	public void onStabilize(Message message) {
 		Message replayStabilize = new Message(MessageType.ACK_STABILIZE, this.id, message.getSourceNode());
-		replayStabilize.setPredecessor(this.predecessor);
+		System.out.println(this.id + "<- " + message.getSourceNode());
+		if(this.predecessor != null) {
+			replayStabilize.setPredecessor(this.predecessor);
+		}
 		this.router.send(replayStabilize);
 	}
 	
 	public void onACKStabilize(Message message) {
 		Integer x = message.getPredecessor();
+		
 		if(insideInterval(x, this.id, this.successor)){
-			if (this.state == NodeState.NEW) {
-				this.state = NodeState.SUBSCRIBED;
-				this.predecessor = x;
-			}else {
+			//Is really useful the if-else ??? it seams that it goes better without
+			//if (this.state == NodeState.NEW) {
+				this.successor = x;
+				//System.out.println(this.id + "SUCCCCCCCCCC" + this.successor);
+			/*}else {
 				ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 				ScheduleParameters scheduleParameters = 
-						ScheduleParameters.createOneTime(schedule.getTickCount() + 3, PriorityType.RANDOM);
+						ScheduleParameters.createOneTime(schedule.getTickCount() + 2, PriorityType.RANDOM);
 				this.actions.add(schedule.schedule(scheduleParameters, new SetSuccessor(this, x)));
-			}
+			}*/
 
 		}
 		
@@ -299,6 +312,10 @@ public class Node {
 		
 		if (this.predecessor == null || insideInterval(nPrime, this.predecessor, this.id)) {
 			this.predecessor = nPrime;
+			
+			if (this.state == NodeState.NEW) {
+				this.state = NodeState.SUBSCRIBED;
+			}
 		}
 	}
 	

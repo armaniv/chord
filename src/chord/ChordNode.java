@@ -19,7 +19,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 50000;
+	private Integer SPACEDIMENSION = 5000;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 
 	private Context<Object> context;
@@ -28,7 +28,7 @@ public class ChordNode {
 	private Network<Object> network;
 	
 	private Integer num_nodes;
-	private Integer churn_rate;
+	private Double p_fail;
 	private Random rnd; // Java random, approximately uniform distributed
 	private HashMap<Integer, Node> nodes; 
 	private HashMap<Integer, ArrayList<RepastEdge<Object>>> edges;
@@ -36,14 +36,14 @@ public class ChordNode {
 	private ArrayList<FindSuccReq> successfulRequests;
 	private ArrayList<FindSuccReq> unsuccessfulRequests;
 
-	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, int churn_rate) {
+	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, double p_fail) {
 		this.context = context;
 		this.space = space;
 		this.network = (Network<Object>) context.getProjection("lookup_network");
 		this.router = new Router();
 		
 		this.num_nodes = num_nodes;
-		this.churn_rate = churn_rate;
+		this.p_fail = p_fail;
 		this.rnd = new Random();
 		this.nodes = new HashMap<Integer, Node>();
 		this.edges = new HashMap<Integer, ArrayList<RepastEdge<Object>>>();
@@ -141,9 +141,9 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 8, interval = 5, priority = 100)
+	@ScheduledMethod(start = 6, interval = 15, priority = 100)
 	public void simulateChurnRate(){
-		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
+		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 		
 		for(int i=0; i< n_FailAndJoin; i++) {
 			Node node = selectRandomNode();		//choose a node randomly
@@ -158,27 +158,25 @@ public class ChordNode {
 		
 		for(int i=0; i < n_FailAndJoin; i++) {
 			// Generate a new node 
-			// call Join() on it
-			// add node to nodes 
-			// add node to router 
-			
 			int id = -1;
 			while(id == -1 || this.nodes.containsKey(id)) {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
+			
 			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.NEW);
 			
-			this.context.add(node);
-			this.router.addNode(node);
-			visualizeNode(node);
+			this.context.add(node);				//add it to the context
+			this.router.addNode(node);			//add it to the router 
+			visualizeNode(node);				//visualize it on the display
+			
 			Node selNode = selectRandomNode();
 			while (selNode.getState() == NodeState.NEW) {
 				selNode = selectRandomNode();
 			}
-			this.nodes.put(id, node);
+			this.nodes.put(id, node);			//add it to nodes 
 			
 			System.out.println("Node " + id + " joining");
-			node.join(selNode.getId());
+			node.join(selNode.getId());			//call Join() on it
 		}
 	}
 	

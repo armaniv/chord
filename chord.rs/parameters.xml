@@ -6,10 +6,10 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="churn_rate" displayName="Percent churn rate" type="int" 
-						defaultValue="5" 
+				<parameter name="p_fail" displayName="P single node failure" type="double" 
+						defaultValue="0.001" 
 						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 				<parameter name="num_nodes" displayName="Number of nodes" type="int" 

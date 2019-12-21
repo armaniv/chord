@@ -286,10 +286,7 @@ public class Node {
 						ScheduleParameters.createOneTime(schedule.getTickCount() + 3, PriorityType.RANDOM);
 				this.actions.add(schedule.schedule(scheduleParameters, new SetSuccessor(this, x)));
 			}
-
 		}
-		
-		//successor.notify(n);
 		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, this.successor);
 		this.router.send(notifyMsg);
 	}
@@ -300,20 +297,7 @@ public class Node {
 		if (this.predecessor == null || insideInterval(nPrime, this.predecessor, this.id)) {
 			this.predecessor = nPrime;
 		}
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj == this)
-			return true;
-		if (!(obj instanceof Node))
-			return false;
-		Node o = (Node) obj;
-		return o.getId().equals(this.id);
-	}
-	
+	}	
 	
 	// --------------- getter and setter methods ---------------
 	
@@ -349,4 +333,15 @@ public class Node {
 		this.state = state;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (obj == this)
+			return true;
+		if (!(obj instanceof Node))
+			return false;
+		Node o = (Node) obj;
+		return o.getId().equals(this.id);
+	}
 }

@@ -19,7 +19,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 64;
+	private Integer SPACEDIMENSION = 1024;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 
 	private Context<Object> context;
@@ -49,7 +49,6 @@ public class ChordNode {
 		this.edges = new HashMap<Integer, ArrayList<RepastEdge<Object>>>();
 		this.successfulRequests = new ArrayList<FindSuccReq>();
 		this.unsuccessfulRequests = new ArrayList<FindSuccReq>();
-		
 		createInitialNetwork(num_nodes);
 	}
 
@@ -141,31 +140,9 @@ public class ChordNode {
 		}
 		randomNode.lookup(lookupKey);
 	}
+
 	
-	@ScheduledMethod(start = 5, interval = 30)
-	public void generateJoin() {
-		int id = -1;
-		while(id == -1 || this.nodes.containsKey(id)) {
-			id = rnd.nextInt(SPACEDIMENSION);
-		}
-		Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
-		
-		this.context.add(node);
-		this.router.addNode(node);
-		visualizeNode(node);
-		Node selNode = selectRandomNode();
-		while (selNode.getState() == NodeState.NEW) {
-			selNode = selectRandomNode();
-		}
-		this.nodes.put(id, node);
-		
-		System.out.println("Node " + id + " joining");
-		node.join(selNode.getId());
-	}
-	
-	
-	
-	@ScheduledMethod(start = 8, interval = 10, priority = 100)
+	@ScheduledMethod(start = 8, interval = 5, priority = 100)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
 		
@@ -185,6 +162,24 @@ public class ChordNode {
 			// call Join() on it
 			// add node to nodes 
 			// add node to router 
+			
+			int id = -1;
+			while(id == -1 || this.nodes.containsKey(id)) {
+				id = rnd.nextInt(SPACEDIMENSION);
+			}
+			Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
+			
+			this.context.add(node);
+			this.router.addNode(node);
+			visualizeNode(node);
+			Node selNode = selectRandomNode();
+			while (selNode.getState() == NodeState.NEW) {
+				selNode = selectRandomNode();
+			}
+			this.nodes.put(id, node);
+			
+			System.out.println("Node " + id + " joining");
+			node.join(selNode.getId());
 		}
 	}
 	

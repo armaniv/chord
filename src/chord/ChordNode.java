@@ -19,7 +19,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 1024;
+	private Integer SPACEDIMENSION = 50000;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 
 	private Context<Object> context;
@@ -60,7 +60,7 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
+			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.SUBSCRIBED);
 			this.nodes.put(id, node);
 			this.context.add(node);
 			visualizeNode(node);
@@ -141,7 +141,6 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	
 	@ScheduledMethod(start = 8, interval = 5, priority = 100)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
@@ -167,7 +166,7 @@ public class ChordNode {
 			while(id == -1 || this.nodes.containsKey(id)) {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this);
+			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.NEW);
 			
 			this.context.add(node);
 			this.router.addNode(node);

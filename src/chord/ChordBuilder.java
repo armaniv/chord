@@ -19,7 +19,7 @@ public class ChordBuilder implements ContextBuilder<Object> {
 		
 		ContinuousSpaceFactory spaceFactory = ContinuousSpaceFactoryFinder.createContinuousSpaceFactory(null);
 		ContinuousSpace<Object> space = spaceFactory.createContinuousSpace("space", context,
-				new RandomCartesianAdder<Object>(), new repast.simphony.space.continuous.WrapAroundBorders(), 200, 200);
+				new RandomCartesianAdder<Object>(), new repast.simphony.space.continuous.WrapAroundBorders(), 50, 50);
 		
 		NetworkBuilder<Object> networkBuilder = new NetworkBuilder<Object>("lookup_network", context, false);
 		networkBuilder.buildNetwork();

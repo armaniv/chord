@@ -19,8 +19,9 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 50000;
+	private Integer SPACEDIMENSION = 64;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
+	private Integer SUCCESSOR_TABLE_SIZE;
 
 	private Context<Object> context;
 	private ContinuousSpace<Object> space;
@@ -28,7 +29,7 @@ public class ChordNode {
 	private Network<Object> network;
 	
 	private Integer num_nodes;
-	private Integer churn_rate;
+	private Double p_fail;
 	private Random rnd; // Java random, approximately uniform distributed
 	private HashMap<Integer, Node> nodes; 
 	private HashMap<Integer, ArrayList<RepastEdge<Object>>> edges;
@@ -36,14 +37,15 @@ public class ChordNode {
 	private ArrayList<FindSuccReq> successfulRequests;
 	private ArrayList<FindSuccReq> unsuccessfulRequests;
 
-	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, int churn_rate) {
+	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, double p_fail) {
 		this.context = context;
 		this.space = space;
 		this.network = (Network<Object>) context.getProjection("lookup_network");
 		this.router = new Router();
 		
 		this.num_nodes = num_nodes;
-		this.churn_rate = churn_rate;
+		this.SUCCESSOR_TABLE_SIZE = 2 * (int) (Math.log(num_nodes) / Math.log(2));  //2*log N
+		this.p_fail = p_fail;
 		this.rnd = new Random();
 		this.nodes = new HashMap<Integer, Node>();
 		this.edges = new HashMap<Integer, ArrayList<RepastEdge<Object>>>();
@@ -60,7 +62,7 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.SUBSCRIBED);
+			Node node = new Node(id, FINGER_TABLE_SIZE, SUCCESSOR_TABLE_SIZE, router, this, NodeState.SUBSCRIBED);
 			this.nodes.put(id, node);
 			this.context.add(node);
 			visualizeNode(node);
@@ -78,6 +80,7 @@ public class ChordNode {
 		int counter = 1;
 		Integer predecessor = null;
 		Node firstNode = null;
+		
 		for (Integer key : sortedKeys) {
 			Node node = nodes.get(key);
 			int id = node.getId();
@@ -97,9 +100,22 @@ public class ChordNode {
 				}
 			}
 
-			// System.out.println(id + ": " + Arrays.toString(fingerTable));
+			//System.out.println(id + ": " + Arrays.toString(fingerTable));
 			node.setFingerTable(fingerTable);
-			node.setSuccessor(fingerTable[0]);
+			
+			ArrayList<Integer> successorList = new ArrayList<>();
+			int startIndex = sortedKeys.indexOf(key) + 1 ;
+			
+			for (int i = 0; i < SUCCESSOR_TABLE_SIZE; i++) {
+				if (startIndex==sortedKeys.size()) {
+					startIndex = 0;
+				}
+				successorList.add(sortedKeys.get(startIndex));
+				startIndex++;
+			}
+			
+			//System.out.println(key + ": " + Arrays.toString(successorList.toArray()));
+			node.setSuccessorList(successorList);
 			
 			// set predecessor
 			if (counter == 1) {
@@ -111,10 +127,10 @@ public class ChordNode {
 				node.setPredecessor(predecessor);
 			}
 			
-			// already subscribed peers
-			node.setState(NodeState.SUBSCRIBED);		
+			// already subscribed peers		
 			predecessor = node.getId();
 			counter++;
+			
 		}
 	}
 
@@ -141,9 +157,9 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 8, interval = 5, priority = 100)
+	@ScheduledMethod(start = 5, interval = 20, priority = 100)
 	public void simulateChurnRate(){
-		int n_FailAndJoin = (this.num_nodes * this.churn_rate) / 100;
+		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 		
 		for(int i=0; i< n_FailAndJoin; i++) {
 			Node node = selectRandomNode();		//choose a node randomly
@@ -153,32 +169,30 @@ public class ChordNode {
 			this.context.remove(node);			//remove it from the context
 			this.router.removeANode(key);		//signal to the router to remove it
 			this.edges.remove(key);				//remove it from the hash edges
-			System.out.println("Node" + key + " crashes");
+			// System.out.println("Node" + key + " crashes");
 		}
 		
 		for(int i=0; i < n_FailAndJoin; i++) {
 			// Generate a new node 
-			// call Join() on it
-			// add node to nodes 
-			// add node to router 
-			
 			int id = -1;
 			while(id == -1 || this.nodes.containsKey(id)) {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.NEW);
 			
-			this.context.add(node);
-			this.router.addNode(node);
-			visualizeNode(node);
+			Node node = new Node(id, FINGER_TABLE_SIZE, SUCCESSOR_TABLE_SIZE, router, this, NodeState.NEW);
+			
+			this.context.add(node);				//add it to the context
+			this.router.addNode(node);			//add it to the router 
+			visualizeNode(node);				//visualize it on the display
+			
 			Node selNode = selectRandomNode();
 			while (selNode.getState() == NodeState.NEW) {
 				selNode = selectRandomNode();
 			}
-			this.nodes.put(id, node);
+			this.nodes.put(id, node);			//add it to nodes 
 			
 			System.out.println("Node " + id + " joining");
-			node.join(selNode.getId());
+			node.join(selNode.getId());			//call Join() on it
 		}
 	}
 	
@@ -188,6 +202,14 @@ public class ChordNode {
 	
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
 		this.unsuccessfulRequests.add(req);
+	}
+	
+	public void signalUnseccessfulJoin(Node node) {
+		Node selNode = selectRandomNode();
+		while (selNode.getState() == NodeState.NEW) {
+			selNode = selectRandomNode();
+		}
+		node.join(selNode.getId());
 	}
 	
 	public void retryLookup(Integer nodeId, Integer key) {

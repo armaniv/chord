@@ -26,9 +26,9 @@ public class ChordBuilder implements ContextBuilder<Object> {
 		
 		Parameters params = RunEnvironment.getInstance().getParameters();
 		int num_nodes = params.getInteger("num_nodes");
-		int churn_rate = params.getInteger("churn_rate");
+		double p_fail = params.getDouble("p_fail");
 				
-		ChordNode chordNode = new ChordNode(context, space, num_nodes, churn_rate);
+		ChordNode chordNode = new ChordNode(context, space, num_nodes, p_fail);
 		context.add(chordNode);
 		
 		return context;

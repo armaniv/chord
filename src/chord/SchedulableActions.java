@@ -22,31 +22,20 @@ public class SchedulableActions {
 		private Node node;
 		private Integer reqId;
 		private Integer nodeIdToCheck;
+		private boolean isKnown;
 
-		public FailCheck(Node node, Integer reqId, Integer nodeIdToCheck) {
+		public FailCheck(Node node, Integer reqId, Integer nodeIdToCheck, boolean isKnown) {
 			this.reqId = reqId;
 			this.node = node;
 			this.nodeIdToCheck = nodeIdToCheck;
+			this.isKnown = isKnown;
 		}
 
 		public void execute() {
-			this.node.failCheck(reqId, nodeIdToCheck);
+			this.node.failCheck(reqId, nodeIdToCheck, isKnown);
 		}
 	}
 	
-	public static class SetSuccessor implements IAction {
-		private Node node;
-		private Integer succ;
-
-		public SetSuccessor(Node node, Integer succ) {
-			this.succ = succ;
-			this.node = node;
-		}
-
-		public void execute() {
-			this.node.setSuccessor(this.succ);
-		}
-	}
 	
 	public static class MasterRetryLookup implements IAction {
 		private ChordNode master;

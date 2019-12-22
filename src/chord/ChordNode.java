@@ -183,19 +183,11 @@ public class ChordNode {
 	}
 	
 	public void signalSuccessuful(FindSuccReq req) {
-		// ToDo: analytics, just store for now
 		this.successfulRequests.add(req);
 	}
 	
-	// count the req as failed, and schedule an action to 
-	// force the node to retry later a findSucc request for that key
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
 		this.unsuccessfulRequests.add(req);
-		
-		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-		ScheduleParameters scheduleParameters = 
-				ScheduleParameters.createOneTime(schedule.getTickCount() + 5, PriorityType.RANDOM);
-		schedule.schedule(scheduleParameters, new MasterRetryLookup(this, req.getFindSuccKey(), resolverNodeId));
 	}
 	
 	public void retryLookup(Integer nodeId, Integer key) {

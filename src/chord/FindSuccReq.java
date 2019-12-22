@@ -6,13 +6,18 @@ public class FindSuccReq {
 	private Integer findSuccKey;
 	private Integer id;
 	private ArrayList<Integer> messagePath;
+	private ArrayList<ArrayList<Integer>> brokenPaths;
+	private MessageType type;
 	private int next;
+	private int maxRetry;
 	private static int C=0;
 	
-	public FindSuccReq(Integer key)  {
+	public FindSuccReq(Integer key, Integer maxRetry)  {
 		setFindSuccKey(key);
 		setId(C++);
-		this.messagePath = new ArrayList<>();
+		this.messagePath = new ArrayList<Integer>();
+		this.brokenPaths = new ArrayList<ArrayList<Integer>>();
+		this.maxRetry = 5;
 	}
 	
 	public void addNodeToPath(Integer nodeId) {
@@ -45,6 +50,30 @@ public class FindSuccReq {
 
 	public void setNext(int next) {
 		this.next = next;
+	}
+
+	public MessageType getType() {
+		return type;
+	}
+
+	public void setType(MessageType type) {
+		this.type = type;
+	}
+
+	public int getMaxRetry() {
+		return maxRetry;
+	}
+	
+	public void prepareForRetry() {
+		this.maxRetry--;
+		int originatorNodeId = this.messagePath.get(0);
+		this.brokenPaths.add(this.messagePath);
+		this.messagePath = new ArrayList<Integer>();
+		this.messagePath.add(originatorNodeId);
+	}
+
+	public ArrayList<ArrayList<Integer>> getBrokenPaths() {
+		return brokenPaths;
 	}
 
 }

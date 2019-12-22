@@ -23,6 +23,7 @@ public class Node {
 	private PendingFindSuccReq pendingFindSuccReq;
 	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 	private NodeState state;
+	private int maxRetry = 5;
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode, NodeState state) {
 		this.id = id;
@@ -179,7 +180,7 @@ public class Node {
 
 	public void lookup(Integer findSuccKey) {
 		if (insideInterval(findSuccKey, this.predecessor, this.id+1)) {
-			FindSuccReq findSuccReq = new FindSuccReq(findSuccKey);
+			FindSuccReq findSuccReq = new FindSuccReq(findSuccKey, maxRetry);
 			findSuccReq.addNodeToPath(this.id);
 			this.masterNode.signalSuccessuful(findSuccReq);
 			System.out.println("Node " + this.id.toString() + " resolved FIND_SUCC(LOOKUP," +findSuccKey+") by ITSELF ");
@@ -196,10 +197,12 @@ public class Node {
 	public void sendFindSucc(Message findSuccMsg) {
 		FindSuccReq findSuccReq = this.pendingFindSuccReq.getRequest(findSuccMsg.getReqId());
 		if (findSuccReq == null) {
-			findSuccReq = new FindSuccReq(findSuccMsg.getKey());
+			findSuccReq = new FindSuccReq(findSuccMsg.getKey(), maxRetry);
+			findSuccReq.addNodeToPath(this.id);
 		}
 		Integer destNodeId = findSuccMsg.getDestinationNode();
 		findSuccReq.addNodeToPath(destNodeId);
+		findSuccReq.setType(findSuccMsg.getSubType());
 		findSuccMsg.setReqId(findSuccReq.getId());
 		if (findSuccMsg.getSubType().equals(MessageType.FIX_FINGERS)){
 			findSuccReq.setNext(this.next);
@@ -232,12 +235,42 @@ public class Node {
 		
 		if (this.pendingFindSuccReq.isPathBroken(nodeIdToCheck, reqId)) {
 			FindSuccReq unsuccessfulReq = this.pendingFindSuccReq.getRequest(reqId);
-			this.masterNode.signalUnsuccessful(unsuccessfulReq, this.id);
+			switch (unsuccessfulReq.getType()) {
+			case JOIN:
+				break;
+			case LOOKUP:
+				int toDoRetries = unsuccessfulReq.getMaxRetry();
+				int alreadyDoneRetries = this.maxRetry - toDoRetries;
+				if (alreadyDoneRetries < this.maxRetry) {
+					retryLookup(unsuccessfulReq);
+				}else {
+					this.masterNode.signalUnsuccessful(unsuccessfulReq, this.id);
+				}
+				break;
+			case FIX_FINGERS:
+				break;
+			default:
+				break;
+			}
+			
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> CRASHED");
 			System.out.println("FindSucc(" + unsuccessfulReq.getFindSuccKey() + ") FAILED");
 		}else {
 			System.out.println("Node " + this.id.toString() + " does CHECK_FAILURE("+nodeIdToCheck+") -> OK");
 		}
+	}
+	
+	private void retryLookup(FindSuccReq lookupReq) {
+		int findSuccKey = lookupReq.getFindSuccKey();
+		lookupReq.prepareForRetry();
+		this.pendingFindSuccReq.updateRequest(lookupReq);
+		Integer successor = findSuccessor(findSuccKey);
+		Message findSuccMsg = new Message(MessageType.FIND_SUCC, this.id, successor);
+		findSuccMsg.setSubType(MessageType.LOOKUP);
+		findSuccMsg.setKey(findSuccKey);
+		sendFindSucc(findSuccMsg);
+		System.out.println("Node " + this.id.toString() + " <RETRY #"+ String.valueOf(5-lookupReq.getMaxRetry())+ "FIND_SUCC(LOOKUP," + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
+
 	}
 	
 	public void join(Integer nodeId) {
@@ -287,19 +320,8 @@ public class Node {
 	
 	public void onACKStabilize(Message message) {
 		Integer x = message.getPredecessor();
-		
 		if(insideInterval(x, this.id, this.successor)){
-			//Is really useful the if-else ??? it seams that it goes better without
-			//if (this.state == NodeState.NEW) {
-				this.successor = x;
-				//System.out.println(this.id + "SUCCCCCCCCCC" + this.successor);
-			/*}else {
-				ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-				ScheduleParameters scheduleParameters = 
-						ScheduleParameters.createOneTime(schedule.getTickCount() + 2, PriorityType.RANDOM);
-				this.actions.add(schedule.schedule(scheduleParameters, new SetSuccessor(this, x)));
-			}*/
-
+			this.successor = x;
 		}
 		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, this.successor);
 		this.router.send(notifyMsg);

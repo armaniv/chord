@@ -34,19 +34,6 @@ public class SchedulableActions {
 		}
 	}
 	
-	public static class SetSuccessor implements IAction {
-		private Node node;
-		private Integer succ;
-
-		public SetSuccessor(Node node, Integer succ) {
-			this.succ = succ;
-			this.node = node;
-		}
-
-		public void execute() {
-			this.node.setSuccessor(this.succ);
-		}
-	}
 	
 	public static class MasterRetryLookup implements IAction {
 		private ChordNode master;

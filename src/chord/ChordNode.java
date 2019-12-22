@@ -19,8 +19,9 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 5000;
+	private Integer SPACEDIMENSION = 64;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
+	private Integer SUCCESSOR_TABLE_SIZE;
 
 	private Context<Object> context;
 	private ContinuousSpace<Object> space;
@@ -43,6 +44,7 @@ public class ChordNode {
 		this.router = new Router();
 		
 		this.num_nodes = num_nodes;
+		this.SUCCESSOR_TABLE_SIZE = 2 * (int) (Math.log(num_nodes) / Math.log(2));  //2*log N
 		this.p_fail = p_fail;
 		this.rnd = new Random();
 		this.nodes = new HashMap<Integer, Node>();
@@ -60,7 +62,7 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.SUBSCRIBED);
+			Node node = new Node(id, FINGER_TABLE_SIZE, SUCCESSOR_TABLE_SIZE, router, this, NodeState.SUBSCRIBED);
 			this.nodes.put(id, node);
 			this.context.add(node);
 			visualizeNode(node);
@@ -78,6 +80,7 @@ public class ChordNode {
 		int counter = 1;
 		Integer predecessor = null;
 		Node firstNode = null;
+		
 		for (Integer key : sortedKeys) {
 			Node node = nodes.get(key);
 			int id = node.getId();
@@ -97,9 +100,22 @@ public class ChordNode {
 				}
 			}
 
-			// System.out.println(id + ": " + Arrays.toString(fingerTable));
+			//System.out.println(id + ": " + Arrays.toString(fingerTable));
 			node.setFingerTable(fingerTable);
-			node.setSuccessor(fingerTable[0]);
+			
+			ArrayList<Integer> successorList = new ArrayList<>();
+			int startIndex = sortedKeys.indexOf(key) + 1 ;
+			
+			for (int i = 0; i < SUCCESSOR_TABLE_SIZE; i++) {
+				if (startIndex==sortedKeys.size()) {
+					startIndex = 0;
+				}
+				successorList.add(sortedKeys.get(startIndex));
+				startIndex++;
+			}
+			
+			//System.out.println(key + ": " + Arrays.toString(successorList.toArray()));
+			node.setSuccessorList(successorList);
 			
 			// set predecessor
 			if (counter == 1) {
@@ -111,10 +127,10 @@ public class ChordNode {
 				node.setPredecessor(predecessor);
 			}
 			
-			// already subscribed peers
-			node.setState(NodeState.SUBSCRIBED);		
+			// already subscribed peers		
 			predecessor = node.getId();
 			counter++;
+			
 		}
 	}
 
@@ -141,7 +157,7 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 6, interval = 15, priority = 100)
+	@ScheduledMethod(start = 5, interval = 6, priority = 100)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 		
@@ -163,7 +179,7 @@ public class ChordNode {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
 			
-			Node node = new Node(id, FINGER_TABLE_SIZE, router, this, NodeState.NEW);
+			Node node = new Node(id, FINGER_TABLE_SIZE, SUCCESSOR_TABLE_SIZE, router, this, NodeState.NEW);
 			
 			this.context.add(node);				//add it to the context
 			this.router.addNode(node);			//add it to the router 

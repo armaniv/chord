@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import chord.SchedulableActions.FailCheck;
-import chord.SchedulableActions.SetSuccessor;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
@@ -15,7 +14,8 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 public class Node {
 	private Integer id;
 	private Integer[] fingerTable;
-	private Integer successor;
+	private ArrayList<Integer> successorList;
+	private Integer SUCCESSOR_TABLE_SIZE;
 	private Integer predecessor;
 	private Integer next;
 	private Router router;
@@ -24,9 +24,11 @@ public class Node {
 	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 	private NodeState state;
 
-	public Node(Integer id, Integer FINGER_TABLE_SIZE, Router router, ChordNode masterNode, NodeState state) {
+	public Node(Integer id, Integer FINGER_TABLE_SIZE, Integer SUCCESSOR_TABLE_SIZE, Router router, ChordNode masterNode, NodeState state) {
 		this.id = id;
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
+		this.SUCCESSOR_TABLE_SIZE = SUCCESSOR_TABLE_SIZE;
+		this.successorList = new ArrayList<>();
 		this.router = router;
 		this.masterNode = masterNode;
 		this.pendingFindSuccReq = new PendingFindSuccReq();
@@ -90,8 +92,8 @@ public class Node {
 	}
 	
 	public Integer findSuccessor(Integer id) {
-		if (insideInterval(id, this.id, successor + 1)) {
-			return successor;
+		if (insideInterval(id, this.id, getFirtSuccesor() + 1)) {
+			return getFirtSuccesor();
 		}
 		else
 		{
@@ -109,7 +111,7 @@ public class Node {
 				return entry;
 			}
 		}
-		return this.successor;
+		return getFirtSuccesor();
 	}
 	
 	// forward the request
@@ -138,7 +140,7 @@ public class Node {
 			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
-			this.successor = message.getSuccessor();
+			this.successorList.add(message.getSuccessor());
 			System.out.println("Node " + this.id + " JOINS with successor=" + message.getSuccessor() + " and predecessor="+ message.getPredecessor() + " ; MsgPath: " + Arrays.toString(messagePath.toArray()));
 			break;
 		case FIX_FINGERS:
@@ -246,7 +248,7 @@ public class Node {
 	
 	@ScheduledMethod(start = 5, interval = 5)
 	public void fixFingers() {
-		if (this.successor == null) return; // still JOINing
+		if (getFirtSuccesor() == null) return; // still JOINing
 		this.next++;
 		if (this.next >= this.fingerTable.length) {
 			this.next = 1;
@@ -254,7 +256,7 @@ public class Node {
 		Integer key = (this.id + (int) Math.pow(2, next-1)) % (int) Math.pow(2, fingerTable.length) ;
 		Integer succ = findSuccessor(key);
 		if (succ.equals(this.id)) {
-			succ = this.successor;
+			succ = getFirtSuccesor();
 		}
 		Message fixFingersMessage = new Message(MessageType.FIND_SUCC, this.id, succ);
 		fixFingersMessage.setSubType(MessageType.FIX_FINGERS);
@@ -265,8 +267,8 @@ public class Node {
 	
 	@ScheduledMethod(start = 5, interval = 5)
 	public void stabilize(){
-		if (this.successor != null) {
-			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, this.successor);
+		if (getFirtSuccesor() != null) {
+			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, getFirtSuccesor());
 			this.router.send(msgStabilize);		
 		}
 	}
@@ -282,20 +284,11 @@ public class Node {
 	public void onACKStabilize(Message message) {
 		Integer x = message.getPredecessor();
 		
-		if(insideInterval(x, this.id, this.successor)){
-			//Is really useful the if-else ??? it seams that it goes better without
-			//if (this.state == NodeState.NEW) {
-				this.successor = x;
-				//System.out.println(this.id + "SUCCCCCCCCCC" + this.successor);
-			/*}else {
-				ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-				ScheduleParameters scheduleParameters = 
-						ScheduleParameters.createOneTime(schedule.getTickCount() + 2, PriorityType.RANDOM);
-				this.actions.add(schedule.schedule(scheduleParameters, new SetSuccessor(this, x)));
-			}*/
-
+		if(insideInterval(x, this.id, getFirtSuccesor())){
+			this.successorList.set(0, x);
 		}
-		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, this.successor);
+		
+		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirtSuccesor());
 		this.router.send(notifyMsg);
 	}
 	
@@ -311,6 +304,16 @@ public class Node {
 		}
 	}	
 	
+	public Integer getFirtSuccesor() {
+		//avoid throwing exception
+		if(this.successorList.size() == 0) {
+			return null;
+		}
+		else {
+			return this.successorList.get(0);
+		}
+	}
+	
 	// --------------- getter and setter methods ---------------
 	
 	public Integer[] getFingerTable() {
@@ -321,8 +324,10 @@ public class Node {
 		this.fingerTable = fingerTable;
 	}
 
-	public void setSuccessor(Integer successor) {
-		this.successor = successor;
+	public void setSuccessorList(ArrayList<Integer> successorList) {
+		for(int i=0; i < successorList.size(); i++) {
+			this.successorList.add(successorList.get(i));
+		}
 	}
 
 	public void setPredecessor(Integer predecessor) {

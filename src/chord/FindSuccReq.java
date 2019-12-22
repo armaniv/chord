@@ -7,11 +7,10 @@ public class FindSuccReq {
 	private Integer id;
 	private ArrayList<Integer> messagePath;
 	private int next;
-	private static int C=0;
 	
-	public FindSuccReq(Integer key)  {
+	public FindSuccReq(Integer key, Integer counter)  {
 		setFindSuccKey(key);
-		setId(C++);
+		setId(counter);
 		this.messagePath = new ArrayList<>();
 	}
 	

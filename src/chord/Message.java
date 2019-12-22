@@ -1,5 +1,7 @@
 package chord;
 
+import java.util.ArrayList;
+
 public class Message {
 	private MessageType type;
 	private MessageType subType;
@@ -9,7 +11,8 @@ public class Message {
 	private Integer destinationNode;
 	private Integer successor;				//the next node to contact in order to continuing a lookup  (default null)
 	private Integer predecessor;			//the predecessor of a node, used in stabilize procedure (default null)
-
+	private ArrayList<Integer> successorList;		// the successorList of a node
+	
 	public Message(MessageType type, Integer sourceNode, Integer destinationNode) {
 		this.setType(type);
 		this.setSourceNode(sourceNode);
@@ -17,6 +20,7 @@ public class Message {
 		this.setSubType(null);
 	}
 
+	
 	public MessageType getType() {
 		return this.type;
 	}
@@ -80,4 +84,16 @@ public class Message {
 	public void setReqId(Integer reqId) {
 		this.reqId = Integer.valueOf(reqId);
 	}
+	
+	public ArrayList<Integer> getSuccessorList() {
+		return successorList;
+	}
+
+	public void setSuccessorList(ArrayList<Integer> successorList) {
+		this.successorList = new ArrayList<>();
+		for(int i=0; i < successorList.size(); i++){
+			this.successorList.add(successorList.get(i));
+		}
+	}
+
 }

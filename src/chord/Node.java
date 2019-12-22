@@ -2,6 +2,8 @@ package chord;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 
 import chord.SchedulableActions.FailCheck;
 import chord.SchedulableActions.StabilizeFailCheck;
@@ -16,6 +18,7 @@ public class Node {
 	private Integer id;
 	private Integer[] fingerTable;
 	private ArrayList<Integer> successorList;
+	private Integer FINGER_TABLE_SIZE;
 	private Integer SUCCESSOR_TABLE_SIZE;
 	private Integer predecessor;
 	private Integer next;
@@ -29,6 +32,7 @@ public class Node {
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Integer SUCCESSOR_TABLE_SIZE, Router router, ChordNode masterNode, NodeState state) {
 		this.id = id;
+		this.FINGER_TABLE_SIZE = FINGER_TABLE_SIZE;
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 		this.SUCCESSOR_TABLE_SIZE = SUCCESSOR_TABLE_SIZE;
 		this.successorList = new ArrayList<>();
@@ -106,9 +110,9 @@ public class Node {
 	}
 	
 	public Integer closestPrecedingNode(Integer id) {
-		for (int i = fingerTable.length - 1; i >= 0; i--) {
-			if (fingerTable[i] == null) continue;
-			int entry = fingerTable[i];
+		ArrayList<Integer> fullTable = getFullTable();
+		for (int i = fullTable.size() - 1; i >= 0; i--) {
+			int entry = fullTable.get(i);
 			
 			if (insideInterval(entry, this.id, id)) {
 				return entry;
@@ -117,6 +121,36 @@ public class Node {
 		return getFirtSuccesor();
 	}
 	
+	private ArrayList<Integer> getFullTable() {
+		HashSet<Integer> hs = new HashSet<Integer>();
+		hs.addAll(this.successorList);
+		
+		for (int i = this.fingerTable.length - 1; i >= 0; i--) {
+			if (fingerTable[i] == null) continue;
+			hs.add(fingerTable[i]);
+		}
+		
+		ArrayList<Integer> fullTable = new ArrayList<>();
+		fullTable.addAll(hs);
+		
+		fullTable.sort(new Comparator<Integer>() {
+			@Override
+			public int compare(Integer arg0, Integer arg1) {
+				int dist1 = distance(id, arg0);
+				int dist2 = distance(id, arg1);
+				return dist1 -dist2;
+			}
+		});
+		
+		//System.out.println(this.id + "fullTab: " + Arrays.toString(fullTable.toArray()));
+		return fullTable;
+	}
+	
+	public int distance(Integer a, Integer b){
+		if(b >= a) return b-a;
+		return b+(int)Math.pow(2, this.FINGER_TABLE_SIZE)-a;
+		
+	}
 	// forward the request
 	// schedule timeout check
 	public void onFoundSucc(Message message) {
@@ -305,11 +339,7 @@ public class Node {
 		
 		MergeSuccessorList(message.getSuccessorList());
 		
-		/*if(insideInterval(x, this.id, getFirtSuccesor())){
-			this.successorList.add(0, x);
-		}*/
-		
-		//System.out.println(this.id + "d: " + Arrays.toString(successorList.toArray()));
+		System.out.println(this.id + "d: " + Arrays.toString(successorList.toArray()));
 		
 		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirtSuccesor());
 		this.router.send(notifyMsg);

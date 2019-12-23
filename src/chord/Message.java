@@ -92,7 +92,7 @@ public class Message {
 	public void setSuccessorList(ArrayList<Integer> successorList) {
 		this.successorList = new ArrayList<>();
 		for(int i=0; i < successorList.size(); i++){
-			this.successorList.add(successorList.get(i));
+			this.successorList.add(Integer.valueOf(successorList.get(i)));
 		}
 	}
 

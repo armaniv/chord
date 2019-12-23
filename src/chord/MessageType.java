@@ -8,6 +8,7 @@ public enum MessageType {
 	STABILIZE,
 	ACK_STABILIZE, 
 	NOTIFY,
+	NOTIFY_SUCC_CHANGE,
 	
 	// SubTypes of FIND_SUCC
 	LOOKUP,

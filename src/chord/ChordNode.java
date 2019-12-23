@@ -11,7 +11,6 @@ import chord.SchedulableActions.MasterRetryLookup;
 import repast.simphony.context.Context;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
-import repast.simphony.engine.schedule.PriorityType;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
@@ -19,7 +18,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 64;
+	private Integer SPACEDIMENSION = 1000000000;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Integer SUCCESSOR_TABLE_SIZE;
 
@@ -157,7 +156,7 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 3, interval = 6, priority = 100)
+	@ScheduledMethod(start = 3, interval = 32)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 		
@@ -169,7 +168,7 @@ public class ChordNode {
 			this.context.remove(node);			//remove it from the context
 			this.router.removeANode(key);		//signal to the router to remove it
 			this.edges.remove(key);				//remove it from the hash edges
-			// System.out.println("Node" + key + " crashes");
+			System.out.println("Node" + key + " crashes");
 		}
 		
 		for(int i=0; i < n_FailAndJoin; i++) {

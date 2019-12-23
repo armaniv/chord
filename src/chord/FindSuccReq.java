@@ -65,7 +65,7 @@ public class FindSuccReq {
 	}
 	
 	public void prepareForRetry() {
-		this.maxRetry--;
+		this.maxRetry = this.maxRetry - 1;
 		int originatorNodeId = this.messagePath.get(0);
 		this.brokenPaths.add(this.messagePath);
 		this.messagePath = new ArrayList<Integer>();

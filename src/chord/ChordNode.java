@@ -19,7 +19,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 64;
+	private Integer SPACEDIMENSION = 1000000000;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Integer SUCCESSOR_TABLE_SIZE;
 
@@ -157,7 +157,7 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 3, interval = 6, priority = 100)
+	@ScheduledMethod(start = 3, interval = 32)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 		

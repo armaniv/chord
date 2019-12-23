@@ -283,7 +283,7 @@ public class Node {
 		//System.out.println("Node " + this.id.toString() + " sends FIND_SUCC(JOIN,"+this.id.toString()+") to " + nodeId.toString());
 	}
 	
-	@ScheduledMethod(start = 4, interval = 6)
+	@ScheduledMethod(start = 4, interval = 32)
 	public void fixFingers() {
 		if (getFirtSuccesor() == null) return; // still JOINing
 		this.next++;
@@ -302,7 +302,7 @@ public class Node {
 		//System.out.println("Node " + this.id + " sends FIND_SUCC(FIX_FINGERS,"+key+") to " + succ);
 	}
 	
-	@ScheduledMethod(start = 4, interval = 6)
+	@ScheduledMethod(start = 4, interval = 32)
 	public void stabilize(){
 		if (getFirtSuccesor() != null) {
 			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, getFirtSuccesor());
@@ -335,11 +335,15 @@ public class Node {
 			this.lastStabilizeId = null;
 		}
 		
-		//System.out.println(this.id + "p: " + Arrays.toString(successorList.toArray()));
+		if(insideInterval(x, this.id, getFirtSuccesor())){
+			this.successorList.add(0, x);
+			MergeSuccessorList(message.getSuccessorList(), true);
+		}
+		else {
+			MergeSuccessorList(message.getSuccessorList(), false);
+		}
 		
-		MergeSuccessorList(message.getSuccessorList());
-		
-		System.out.println(this.id + "d: " + Arrays.toString(successorList.toArray()));
+		//System.out.println(this.id + "d: " + Arrays.toString(successorList.toArray()));
 		
 		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirtSuccesor());
 		this.router.send(notifyMsg);
@@ -370,20 +374,25 @@ public class Node {
 		}
 	}
 	
-	private void MergeSuccessorList(ArrayList<Integer> msgSuccessorList) {
-		if (this.successorList.size() >= msgSuccessorList.size()) {
-			for (int i = 0; i < msgSuccessorList.size() - 1; i++) {
-				this.successorList.set(1 + i, msgSuccessorList.get(i));
-			}
-		}
-		else{
-			for (int i = 0; i < msgSuccessorList.size(); i++) {
-				this.successorList.add(1 + i, msgSuccessorList.get(i));
-			}
+	private void MergeSuccessorList(ArrayList<Integer> msgSuccessorList, boolean newSuccesor) {
+		Integer elemZero = this.successorList.get(0);
+		Integer elemOne = null;
+		
+		if (newSuccesor) {
+			elemOne = this.successorList.get(1);
 		}
 		
+		this.successorList = (ArrayList<Integer>)msgSuccessorList.clone();
+		
+		if(newSuccesor && elemOne != null) {
+			this.successorList.add(0, elemOne);
+		}
+		
+		this.successorList.add(0,elemZero);
+		
+		
 		while(this.successorList.size() > SUCCESSOR_TABLE_SIZE) {
-			this.successorList.remove( this.successorList.size() - 1 );
+			this.successorList.remove( this.successorList.size() - 1);
 		}
 	}
 	

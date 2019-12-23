@@ -157,7 +157,7 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 5, interval = 20, priority = 100)
+	@ScheduledMethod(start = 3, interval = 6, priority = 100)
 	public void simulateChurnRate(){
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 		

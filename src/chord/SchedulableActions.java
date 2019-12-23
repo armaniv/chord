@@ -51,4 +51,17 @@ public class SchedulableActions {
 			this.master.retryLookup(nodeId, key);
 		}
 	}
+	
+	
+	public static class StabilizeFailCheck implements IAction {
+		private Node node;
+
+		public StabilizeFailCheck(Node node) {
+			this.node = node;
+		}
+
+		public void execute() {
+			this.node.stabilizeFailCheck();
+		}
+	}
 }

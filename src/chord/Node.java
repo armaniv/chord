@@ -2,8 +2,11 @@ package chord;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 
 import chord.SchedulableActions.FailCheck;
+import chord.SchedulableActions.StabilizeFailCheck;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
@@ -15,6 +18,7 @@ public class Node {
 	private Integer id;
 	private Integer[] fingerTable;
 	private ArrayList<Integer> successorList;
+	private Integer FINGER_TABLE_SIZE;
 	private Integer SUCCESSOR_TABLE_SIZE;
 	private Integer predecessor;
 	private Integer next;
@@ -24,9 +28,12 @@ public class Node {
 	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 	private NodeState state;
 	private int maxRetry = 5;
+	private Integer counter = 0;
+	private Integer lastStabilizeId = -1;
 
 	public Node(Integer id, Integer FINGER_TABLE_SIZE, Integer SUCCESSOR_TABLE_SIZE, Router router, ChordNode masterNode, NodeState state) {
 		this.id = id;
+		this.FINGER_TABLE_SIZE = FINGER_TABLE_SIZE;
 		this.fingerTable = new Integer[FINGER_TABLE_SIZE];
 		this.SUCCESSOR_TABLE_SIZE = SUCCESSOR_TABLE_SIZE;
 		this.successorList = new ArrayList<>();
@@ -104,9 +111,9 @@ public class Node {
 	}
 	
 	public Integer closestPrecedingNode(Integer id) {
-		for (int i = fingerTable.length - 1; i >= 0; i--) {
-			if (fingerTable[i] == null) continue;
-			int entry = fingerTable[i];
+		ArrayList<Integer> fullTable = getFullTable();
+		for (int i = fullTable.size() - 1; i >= 0; i--) {
+			int entry = fullTable.get(i);
 			
 			if (insideInterval(entry, this.id, id)) {
 				return entry;
@@ -115,6 +122,36 @@ public class Node {
 		return getFirtSuccesor();
 	}
 	
+	private ArrayList<Integer> getFullTable() {
+		HashSet<Integer> hs = new HashSet<Integer>();
+		hs.addAll(this.successorList);
+		
+		for (int i = this.fingerTable.length - 1; i >= 0; i--) {
+			if (fingerTable[i] == null) continue;
+			hs.add(fingerTable[i]);
+		}
+		
+		ArrayList<Integer> fullTable = new ArrayList<>();
+		fullTable.addAll(hs);
+		
+		fullTable.sort(new Comparator<Integer>() {
+			@Override
+			public int compare(Integer arg0, Integer arg1) {
+				int dist1 = distance(id, arg0);
+				int dist2 = distance(id, arg1);
+				return dist1 -dist2;
+			}
+		});
+		
+		//System.out.println(this.id + "fullTab: " + Arrays.toString(fullTable.toArray()));
+		return fullTable;
+	}
+	
+	public int distance(Integer a, Integer b){
+		if(b >= a) return b-a;
+		return b+(int)Math.pow(2, this.FINGER_TABLE_SIZE)-a;
+		
+	}
 	// forward the request
 	// schedule timeout check
 	public void onFoundSucc(Message message) {
@@ -141,8 +178,8 @@ public class Node {
 			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
-			this.successorList.add(message.getSuccessor());
-			System.out.println("Node " + this.id + " JOINS with successor=" + message.getSuccessor() + " and predecessor="+ message.getPredecessor() + " ; MsgPath: " + Arrays.toString(messagePath.toArray()));
+			this.successorList.add(0, message.getSuccessor());
+			System.out.println("Node " + this.id + " JOINS with succ=" + message.getSuccessor() + "; MsgPath: " + Arrays.toString(messagePath.toArray()));
 			break;
 		case FIX_FINGERS:
 			Integer succ = message.getSuccessor();
@@ -161,7 +198,6 @@ public class Node {
 		if (value == null || a == null || b == null) {
 			return false;
 		}
-		
 		if (value > a && value < b) {
 			return true;
 		}
@@ -171,13 +207,12 @@ public class Node {
 		if (value > b && a > b && value > a) {
 			return true;
 		}
-		
 		return false;
 	}
 
 	public void lookup(Integer findSuccKey) {
 		if (insideInterval(findSuccKey, this.predecessor, this.id+1)) {
-			FindSuccReq findSuccReq = new FindSuccReq(findSuccKey, maxRetry);
+			FindSuccReq findSuccReq = new FindSuccReq(findSuccKey, this.counter++);
 			findSuccReq.addNodeToPath(this.id);
 			this.masterNode.signalSuccessuful(findSuccReq);
 			//System.out.println("Node " + this.id.toString() + " resolved FIND_SUCC(LOOKUP," +findSuccKey+") by ITSELF ");
@@ -194,7 +229,7 @@ public class Node {
 	public void sendFindSucc(Message findSuccMsg, boolean isKnown) {
 		FindSuccReq findSuccReq = this.pendingFindSuccReq.getRequest(findSuccMsg.getReqId());
 		if (findSuccReq == null) {
-			findSuccReq = new FindSuccReq(findSuccMsg.getKey(), maxRetry);
+			findSuccReq = new FindSuccReq(findSuccMsg.getKey(), this.counter++);
 			findSuccReq.addNodeToPath(this.id);
 		}
 		Integer destNodeId = findSuccMsg.getDestinationNode();
@@ -299,7 +334,7 @@ public class Node {
 		//System.out.println("Node " + this.id.toString() + " sends FIND_SUCC(JOIN,"+this.id.toString()+") to " + nodeId.toString());
 	}
 	
-	@ScheduledMethod(start = 5, interval = 5)
+	@ScheduledMethod(start = 4, interval = 6)
 	public void fixFingers() {
 		if (getFirtSuccesor() == null) return; // still JOINing
 		this.next++;
@@ -325,33 +360,49 @@ public class Node {
 		sendFindSucc(fixFingersMessage, true);
 	}
 	
-	@ScheduledMethod(start = 5, interval = 5)
+	@ScheduledMethod(start = 4, interval = 6)
 	public void stabilize(){
 		if (getFirtSuccesor() != null) {
 			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, getFirtSuccesor());
-			this.router.send(msgStabilize);		
+			this.lastStabilizeId = this.counter++;
+			msgStabilize.setReqId(lastStabilizeId);
+			this.router.send(msgStabilize);
+			
+			ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+			ScheduleParameters scheduleParameters = 
+					ScheduleParameters.createOneTime(schedule.getTickCount() + 5, PriorityType.RANDOM);
+			this.actions.add(schedule.schedule(scheduleParameters, new StabilizeFailCheck(this)));
 		}
 	}
 	
 	public void onStabilize(Message message) {
 		Message replayStabilize = new Message(MessageType.ACK_STABILIZE, this.id, message.getSourceNode());
+		replayStabilize.setReqId(message.getReqId());
 		if(this.predecessor != null) {
 			replayStabilize.setPredecessor(this.predecessor);
 		}
+		replayStabilize.setSuccessorList(this.successorList);
 		this.router.send(replayStabilize);
 	}
 	
 	public void onACKStabilize(Message message) {
 		Integer x = message.getPredecessor();
+		Integer ACKId = message.getReqId();
 		
-		if(insideInterval(x, this.id, getFirtSuccesor())){
-			this.successorList.set(0, x);
+		if(this.lastStabilizeId.equals(ACKId)) {
+			this.lastStabilizeId = null;
 		}
+		
+		//System.out.println(this.id + "p: " + Arrays.toString(successorList.toArray()));
+		
+		MergeSuccessorList(message.getSuccessorList());
+		
+		System.out.println(this.id + "d: " + Arrays.toString(successorList.toArray()));
 		
 		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirtSuccesor());
 		this.router.send(notifyMsg);
 	}
-	
+
 	public void onNotify(Message message) {
 		Integer nPrime = message.getSourceNode();
 		
@@ -362,7 +413,37 @@ public class Node {
 				this.state = NodeState.SUBSCRIBED;
 			}
 		}
-	}	
+	}
+	
+	
+	/**stabilize and ack-stabilize require at most 4 ticks
+	 * if the correct ack-stabilize is received, lastStabilizeId will be = null
+	 * function called every 5 ticks, so no priority needed, safe because 5>4 and
+	 * 5<6 that is the tick in which lastStabilizeId is set again
+	 * */
+	public void stabilizeFailCheck() {
+		
+		if(this.lastStabilizeId != null) {
+			removeFirtSuccessor();
+		}
+	}
+	
+	private void MergeSuccessorList(ArrayList<Integer> msgSuccessorList) {
+		if (this.successorList.size() >= msgSuccessorList.size()) {
+			for (int i = 0; i < msgSuccessorList.size() - 1; i++) {
+				this.successorList.set(1 + i, msgSuccessorList.get(i));
+			}
+		}
+		else{
+			for (int i = 0; i < msgSuccessorList.size(); i++) {
+				this.successorList.add(1 + i, msgSuccessorList.get(i));
+			}
+		}
+		
+		while(this.successorList.size() > SUCCESSOR_TABLE_SIZE) {
+			this.successorList.remove( this.successorList.size() - 1 );
+		}
+	}
 	
 	public Integer getFirtSuccesor() {
 		//avoid throwing exception
@@ -371,6 +452,13 @@ public class Node {
 		}
 		else {
 			return this.successorList.get(0);
+		}
+	}
+	
+	
+	public void removeFirtSuccessor() {
+		if(this.successorList.size() != 0) {
+			this.successorList.remove(0);
 		}
 	}
 	

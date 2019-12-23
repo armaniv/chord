@@ -10,12 +10,12 @@ public class FindSuccReq {
 	private MessageType type;
 	private int next;
 	private int maxRetry;
-	private static int C=0;
+
 	
-	public FindSuccReq(Integer key, Integer maxRetry)  {
+	public FindSuccReq(Integer key, Integer counter)  {
 		setFindSuccKey(key);
-		setId(C++);
-		this.messagePath = new ArrayList<Integer>();
+		setId(counter);
+		this.messagePath = new ArrayList<>();
 		this.brokenPaths = new ArrayList<ArrayList<Integer>>();
 		this.maxRetry = 5;
 	}

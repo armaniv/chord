@@ -85,7 +85,7 @@ public class Node {
 			ack.setSuccessor(this.id);
 			ack.setReqId(message.getReqId());
 			if (message.getSubType() == MessageType.JOIN) {
-				message.setSuccessorList(this.successorList);
+				ack.setSuccessorList(this.successorList);
 				this.predecessor = message.getSourceNode();
 				
 			}
@@ -105,8 +105,12 @@ public class Node {
 	}
 	
 	public Integer findSuccessor(Integer id) {
-		if (insideInterval(id, this.id, getFirtSuccesor() + 1)) {
-			return getFirtSuccesor();
+		if (getFirstSuccesor()==null) {
+			int a = 0;
+			a++;
+		}
+		if (insideInterval(id, this.id, getFirstSuccesor() + 1)) {
+			return getFirstSuccesor();
 		}
 		else
 		{
@@ -124,7 +128,7 @@ public class Node {
 				return entry;
 			}
 		}
-		return getFirtSuccesor();
+		return getFirstSuccesor();
 	}
 	
 	private void notifySuccChange(Integer succ, Integer nodeId) {
@@ -316,6 +320,7 @@ public class Node {
 		for (int i=0; i<this.successorList.size(); i++) {
 			if (this.successorList.get(i).equals(nodeId)){
 				this.successorList.remove(i);
+				break;
 			}
 		}
 		for (int i=0; i<this.fingerTable.length; i++) {
@@ -335,6 +340,7 @@ public class Node {
 		Message findSuccMsg = new Message(MessageType.FIND_SUCC, this.id, successor);
 		findSuccMsg.setSubType(MessageType.LOOKUP);
 		findSuccMsg.setKey(findSuccKey);
+		findSuccMsg.setReqId(lookupReq.getId());
 		sendFindSucc(findSuccMsg, true);
 		System.out.println("Node " + this.id.toString() + " RETRY #"+ String.valueOf(5-lookupReq.getMaxRetry())+ " FIND_SUCC(LOOKUP," + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
 
@@ -351,7 +357,7 @@ public class Node {
 	
 	@ScheduledMethod(start = 4, interval = 32)
 	public void fixFingers() {
-		if (getFirtSuccesor() == null) return; // still JOINing
+		if (getFirstSuccesor() == null) return; // still JOINing
 		this.next++;
 		if (this.next >= this.fingerTable.length) {
 			this.next = 1;
@@ -366,7 +372,7 @@ public class Node {
 	}
 	
 	public void retryFixFingers(int oldNext) {
-		if (getFirtSuccesor() == null) return; // still JOINing
+		if (getFirstSuccesor() == null) return; // still JOINing
 		Integer key = (this.id + (int) Math.pow(2, oldNext-1)) % (int) Math.pow(2, fingerTable.length) ;
 		Integer succ = findSuccessor(key);
 		Message fixFingersMessage = new Message(MessageType.FIND_SUCC, this.id, succ);
@@ -377,8 +383,8 @@ public class Node {
 	
 	@ScheduledMethod(start = 4, interval = 32)
 	public void stabilize(){
-		if (getFirtSuccesor() != null) {
-			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, getFirtSuccesor());
+		if (getFirstSuccesor() != null) {
+			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, getFirstSuccesor());
 			this.lastStabilizeId = this.counter++;
 			msgStabilize.setReqId(lastStabilizeId);
 			this.router.send(msgStabilize);
@@ -408,7 +414,7 @@ public class Node {
 			this.lastStabilizeId = null;
 		}
 		
-		if(insideInterval(x, this.id, getFirtSuccesor())){
+		if(insideInterval(x, this.id, getFirstSuccesor())){
 			this.successorList.add(0, x);
 			MergeSuccessorList(message.getSuccessorList(), true);
 		}
@@ -418,7 +424,7 @@ public class Node {
 		
 		//System.out.println(this.id + "d: " + Arrays.toString(successorList.toArray()));
 		
-		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirtSuccesor());
+		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirstSuccesor());
 		this.router.send(notifyMsg);
 	}
 
@@ -468,7 +474,7 @@ public class Node {
 		}
 	}
 	
-	public Integer getFirtSuccesor() {
+	public Integer getFirstSuccesor() {
 		//avoid throwing exception
 		if(this.successorList.size() == 0) {
 			return null;

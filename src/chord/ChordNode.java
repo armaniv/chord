@@ -7,11 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import chord.SchedulableActions.MasterRetryLookup;
 import repast.simphony.context.Context;
-import repast.simphony.engine.environment.RunEnvironment;
-import repast.simphony.engine.schedule.ISchedule;
-import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.graph.Network;
@@ -239,11 +235,13 @@ public class ChordNode {
 	public void removeAnEdge(Integer source, Integer destination) {
 		ArrayList<RepastEdge<Object>> singleNodeEdges = this.edges.get(source);
 		
-		for (int i = singleNodeEdges.size() -1; i >= 0; i--) {
-			RepastEdge<Object> edge = singleNodeEdges.get(i);
-			if(edge.getTarget().equals(this.nodes.get(destination))) {
-				network.removeEdge(edge);
-				singleNodeEdges.remove(i);
+		if(singleNodeEdges != null) {
+			for (int i = singleNodeEdges.size() -1; i >= 0; i--) {
+				RepastEdge<Object> edge = singleNodeEdges.get(i);
+				if(edge.getTarget().equals(this.nodes.get(destination))) {
+					network.removeEdge(edge);
+					singleNodeEdges.remove(i);
+				}
 			}
 		}
 	}

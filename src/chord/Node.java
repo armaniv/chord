@@ -105,10 +105,6 @@ public class Node {
 	}
 	
 	public Integer findSuccessor(Integer id) {
-		if (getFirstSuccesor()==null) {
-			int a = 0;
-			a++;
-		}
 		if (insideInterval(id, this.id, getFirstSuccesor() + 1)) {
 			return getFirstSuccesor();
 		}

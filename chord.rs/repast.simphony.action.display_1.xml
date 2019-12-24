@@ -4,13 +4,13 @@
   <styles>
     <entry>
       <string>chord.Node</string>
-      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+      <string>chord.NodeStyle2D</string>
     </entry>
   </styles>
   <editedStyles>
     <entry>
       <string>chord.Node</string>
-      <string>chord.Node.style_4.xml</string>
+      <null/>
     </entry>
   </editedStyles>
   <netStyles>
@@ -33,7 +33,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>452694522</hashCode>
+    <hashCode>-978388486</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
@@ -57,7 +57,7 @@
     </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <visualizationProperties class="repast.simphony.visualization.UnitSizeLayoutProperties">
-    <unitSize>8.0</unitSize>
+    <unitSize>25.0</unitSize>
   </visualizationProperties>
   <projectionDescriptors>
     <entry>
@@ -81,7 +81,7 @@
               </entry>
               <entry>
                 <string>UNIT_SIZE</string>
-                <float>8.0</float>
+                <float>25.0</float>
               </entry>
               <entry>
                 <string>SHOW</string>

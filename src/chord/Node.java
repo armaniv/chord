@@ -218,9 +218,7 @@ public class Node {
 			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
-			ArrayList<Integer> succList = message.getSuccessorList();
-			this.successorList = new ArrayList<Integer>(succList.subList(0, succList.size() - 1));
-			this.successorList.add(0, message.getSourceNode());
+			MergeSuccessorList(message.getSuccessorList(), false);
 			/*System.out.println("Node " + this.id + " JOINS with succ=" + message.getSuccessor() + "; MsgPath: "
 					+ Arrays.toString(messagePath.toArray()));*/
 			break;

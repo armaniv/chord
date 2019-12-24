@@ -18,6 +18,6 @@ public class NodeStyle2D extends DefaultStyleOGL2D {
 	}
 
 	public VSpatial getVSpatial(Object agent, VSpatial spatial) {
-		return shapeFactory.createCircle(4,16);	
+		return shapeFactory.createCircle(4, 16);
 	}
 }

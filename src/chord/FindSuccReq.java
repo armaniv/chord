@@ -11,15 +11,14 @@ public class FindSuccReq {
 	private int next;
 	private int maxRetry;
 
-	
-	public FindSuccReq(Integer key, Integer counter)  {
+	public FindSuccReq(Integer key, Integer counter) {
 		setFindSuccKey(key);
 		setId(counter);
 		this.messagePath = new ArrayList<>();
 		this.brokenPaths = new ArrayList<ArrayList<Integer>>();
 		this.maxRetry = 5;
 	}
-	
+
 	public void addNodeToPath(Integer nodeId) {
 		this.getMessagePath().add(Integer.valueOf(nodeId));
 	}
@@ -63,7 +62,7 @@ public class FindSuccReq {
 	public int getMaxRetry() {
 		return maxRetry;
 	}
-	
+
 	public void prepareForRetry() {
 		this.maxRetry = this.maxRetry - 1;
 		int originatorNodeId = this.messagePath.get(0);

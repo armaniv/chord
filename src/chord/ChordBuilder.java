@@ -30,7 +30,7 @@ public class ChordBuilder implements ContextBuilder<Object> {
 				
 		ChordNode chordNode = new ChordNode(context, space, num_nodes, p_fail);
 		context.add(chordNode);
-		
+
 		return context;
 	}
 

@@ -22,15 +22,15 @@ public class Router {
 			this.nodes.put(key, node);
 		}
 	}
-	
+
 	public void addNode(Node node) {
 		this.nodes.put(node.getId(), node);
 	}
-	
+
 	public void send(Message message) {
 		Node sender = nodes.get(message.getSourceNode());
 		Node receiver = nodes.get(message.getDestinationNode());
-		
+
 		if (receiver != null && sender != null) {
 			ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 			ScheduleParameters scheduleParameters = ScheduleParameters

@@ -35,8 +35,7 @@ public class SchedulableActions {
 			this.node.failCheck(reqId, nodeIdToCheck, isKnown);
 		}
 	}
-	
-	
+
 	public static class MasterRetryLookup implements IAction {
 		private ChordNode master;
 		private Integer key;
@@ -51,8 +50,7 @@ public class SchedulableActions {
 			this.master.retryLookup(nodeId, key);
 		}
 	}
-	
-	
+
 	public static class StabilizeFailCheck implements IAction {
 		private Node node;
 

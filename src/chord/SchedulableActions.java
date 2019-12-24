@@ -14,7 +14,10 @@ public class SchedulableActions {
 		}
 
 		public void execute() {
-			this.node.receive(message);
+			try {
+				this.node.receive(message);
+			} catch (Exception e) {
+			}
 		}
 	}
 

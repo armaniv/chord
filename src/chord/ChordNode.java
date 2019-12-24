@@ -193,6 +193,17 @@ public class ChordNode {
 
 	public void signalSuccessuful(FindSuccReq req) {
 		this.successfulRequests.add(req);
+		int tmp = 0;
+		if(this.successfulRequests.size()==1000) {
+			for(int i=0; i< this.successfulRequests.size(); i++){
+				tmp+= this.successfulRequests.get(i).getPathLength();
+			}
+			
+			System.out.println("Avg first 1000 req: " + tmp/1000.0);
+		}
+		
+		
+
 	}
 
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {

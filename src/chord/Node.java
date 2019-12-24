@@ -212,17 +212,17 @@ public class Node {
 		switch (message.getSubType()) {
 		case LOOKUP:
 			this.masterNode.signalSuccessuful(request);
-			System.out.println(
+			/*System.out.println(
 					"Key " + request.getFindSuccKey() + " found at Node " + messagePath.get(messagePath.size() - 1)
-							+ " in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()));
+							+ " in " + messagePath.size() + " steps " + Arrays.toString(messagePath.toArray()));*/
 			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
 			ArrayList<Integer> succList = message.getSuccessorList();
 			this.successorList = new ArrayList<Integer>(succList.subList(0, succList.size() - 1));
 			this.successorList.add(0, message.getSourceNode());
-			System.out.println("Node " + this.id + " JOINS with succ=" + message.getSuccessor() + "; MsgPath: "
-					+ Arrays.toString(messagePath.toArray()));
+			/*System.out.println("Node " + this.id + " JOINS with succ=" + message.getSuccessor() + "; MsgPath: "
+					+ Arrays.toString(messagePath.toArray()));*/
 			break;
 		case FIX_FINGERS:
 			Integer succ = message.getSuccessor();
@@ -336,7 +336,7 @@ public class Node {
 				} else {
 					this.pendingFindSuccReq.removeRequest(reqId);
 					this.masterNode.signalUnsuccessful(unsuccessfulReq, this.id);
-					System.out.println("FindSucc(" + unsuccessfulReq.getFindSuccKey() + ") FAILED");
+					//System.out.println("FindSucc(" + unsuccessfulReq.getFindSuccKey() + ") FAILED");
 				}
 				break;
 			case FIX_FINGERS:

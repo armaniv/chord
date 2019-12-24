@@ -74,5 +74,9 @@ public class FindSuccReq {
 	public ArrayList<ArrayList<Integer>> getBrokenPaths() {
 		return brokenPaths;
 	}
+	
+	public int getPathLength() {
+		return this.messagePath.size();
+	}
 
 }

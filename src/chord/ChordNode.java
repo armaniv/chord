@@ -14,7 +14,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 1000000000;
+	private Integer SPACEDIMENSION =  Integer.MAX_VALUE;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Integer SUCCESSOR_TABLE_SIZE;
 
@@ -164,7 +164,7 @@ public class ChordNode {
 			this.context.remove(node);			//remove it from the context
 			this.router.removeANode(key);		//signal to the router to remove it
 			this.edges.remove(key);				//remove it from the hash edges
-			System.out.println("Node" + key + " crashes");
+			//System.out.println("Node" + key + " crashes");
 		}
 		
 		for(int i=0; i < n_FailAndJoin; i++) {
@@ -186,7 +186,7 @@ public class ChordNode {
 			}
 			this.nodes.put(id, node);			//add it to nodes 
 			
-			System.out.println("Node " + id + " joining");
+			//System.out.println("Node " + id + " joining");
 			node.join(selNode.getId());			//call Join() on it
 		}
 	}

@@ -71,6 +71,9 @@ public class Node {
 			//System.out.println("Node " + this.id.toString() + " received NOTIFY from " + message.getSourceNode());
 			this.onNotify(message);
 			break;
+		case NOTIFY_SUCC_CHANGE:
+			this.onNotifySuccChange(message);
+			break;
 		default:
 			// nothing for now (maybe for ever), throw Exception?
 			break;
@@ -86,8 +89,9 @@ public class Node {
 			ack.setReqId(message.getReqId());
 			if (message.getSubType() == MessageType.JOIN) {
 				ack.setSuccessorList(this.successorList);
+				Integer oldPred = this.predecessor;
 				this.predecessor = message.getSourceNode();
-				
+				notifySuccChange(this.predecessor,oldPred);
 			}
 			router.send(ack);
 			//System.out.println("Node " + this.id.toString() + " sent FOUND_KEY("+message.getKey()+") to " + message.getSourceNode().toString());
@@ -127,10 +131,21 @@ public class Node {
 		return getFirstSuccesor();
 	}
 	
-	private void notifySuccChange(Integer succ, Integer nodeId) {
-		Message msg = new Message(MessageType.NOTIFY_SUCC_CHANGE, this.id, nodeId);
+	private void notifySuccChange(Integer succ, Integer oldPred) {
+		Message msg = new Message(MessageType.NOTIFY_SUCC_CHANGE, this.id, oldPred);
 		msg.setSuccessor(succ);
 		msg.setSuccessorList(this.successorList);
+		this.router.send(msg);
+	}
+	
+	
+	private void onNotifySuccChange(Message message) {
+		this.successorList.add(0, message.getSuccessor());
+		MergeSuccessorList(message.getSuccessorList(), true);
+		
+		//notify new succesor
+		Message notifyMsg = new Message(MessageType.NOTIFY, this.id, getFirstSuccesor());
+		this.router.send(notifyMsg);
 	}
 	
 	private ArrayList<Integer> getFullTable() {
@@ -235,7 +250,7 @@ public class Node {
 			findSuccMsg.setSubType(MessageType.LOOKUP);
 			findSuccMsg.setKey(findSuccKey);
 			sendFindSucc(findSuccMsg, true);
-			System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(LOOKUP," + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
+			//System.out.println("Node " + this.id.toString() + " sent FIND_SUCC(LOOKUP," + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
 		}
 	}
 	
@@ -338,7 +353,7 @@ public class Node {
 		findSuccMsg.setKey(findSuccKey);
 		findSuccMsg.setReqId(lookupReq.getId());
 		sendFindSucc(findSuccMsg, true);
-		System.out.println("Node " + this.id.toString() + " RETRY #"+ String.valueOf(5-lookupReq.getMaxRetry())+ " FIND_SUCC(LOOKUP," + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
+		//System.out.println("Node " + this.id.toString() + " RETRY #"+ String.valueOf(5-lookupReq.getMaxRetry())+ " FIND_SUCC(LOOKUP," + findSuccMsg.getKey() +") to " + findSuccMsg.getDestinationNode().toString());
 
 	}
 	

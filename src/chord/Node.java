@@ -82,6 +82,9 @@ public class Node {
 		case NOTIFY_SUCC_CHANGE:
 			this.onNotifySuccChange(message);
 			break;
+		case NOTIFY_CRASHED_NODE:
+			this.onNotifyCrashedNode(message);
+			break;
 		default:
 			// nothing for now (maybe for ever), throw Exception?
 			break;
@@ -218,7 +221,9 @@ public class Node {
 			this.masterNode.removeAnEdge(this.id, message.getSourceNode());
 			break;
 		case JOIN:
-			MergeSuccessorList(message.getSuccessorList(), false);
+			ArrayList<Integer> succList = message.getSuccessorList();
+			this.successorList = new ArrayList<Integer>(succList.subList(0, succList.size() - 1));
+			this.successorList.add(0, message.getSourceNode());
 			/*System.out.println("Node " + this.id + " JOINS with succ=" + message.getSuccessor() + "; MsgPath: "
 					+ Arrays.toString(messagePath.toArray()));*/
 			break;
@@ -325,6 +330,7 @@ public class Node {
 				this.masterNode.signalUnseccessfulJoin(this);
 				break;
 			case LOOKUP:
+				this.notifyCrashedNode(unsuccessfulReq.getMessagePath().get(unsuccessfulReq.getMessagePath().size()-2), nodeIdToCheck);
 				int toDoRetries = unsuccessfulReq.getMaxRetry();
 				int alreadyDoneRetries = this.maxRetry - toDoRetries;
 				if (isKnown)
@@ -472,6 +478,16 @@ public class Node {
 				this.state = NodeState.SUBSCRIBED;
 			}
 		}
+	}
+	
+	public void notifyCrashedNode(Integer destNodeId, Integer crashedNodeId) {
+		Message message = new Message(MessageType.NOTIFY_CRASHED_NODE, this.id, destNodeId);
+		message.setSuccessor(crashedNodeId);
+		this.router.send(message);
+	}
+	
+	public void onNotifyCrashedNode(Message message) {
+		this.removeKnownNodeId(message.getSuccessor());
 	}
 
 	/**

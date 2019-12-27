@@ -9,6 +9,7 @@ public enum MessageType {
 	ACK_STABILIZE, 
 	NOTIFY,
 	NOTIFY_SUCC_CHANGE,
+	NOTIFY_CRASHED_NODE,
 	
 	// SubTypes of FIND_SUCC
 	LOOKUP,

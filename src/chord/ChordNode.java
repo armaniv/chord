@@ -125,7 +125,6 @@ public class ChordNode {
 			// already subscribed peers
 			predecessor = node.getId();
 			counter++;
-
 		}
 	}
 

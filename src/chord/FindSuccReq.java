@@ -78,5 +78,9 @@ public class FindSuccReq {
 	public int getPathLength() {
 		return this.messagePath.size();
 	}
+	
+	public String toString() {
+		return String.valueOf(this.messagePath.size());
+	}
 
 }

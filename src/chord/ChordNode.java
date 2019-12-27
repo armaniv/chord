@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import repast.simphony.context.Context;
+import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.graph.Network;
@@ -141,7 +142,7 @@ public class ChordNode {
 
 	// generate a random lookup(key, node)
 	// node is the node responsible for the lookup
-	@ScheduledMethod(start = 1, interval = 5)
+	//@ScheduledMethod(start = 1, interval = 5)
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
@@ -192,17 +193,6 @@ public class ChordNode {
 
 	public void signalSuccessuful(FindSuccReq req) {
 		this.successfulRequests.add(req);
-		int tmp = 0;
-		if(this.successfulRequests.size()==1000) {
-			for(int i=0; i< this.successfulRequests.size(); i++){
-				tmp+= this.successfulRequests.get(i).getPathLength();
-			}
-			
-			System.out.println("Avg first 1000 req: " + tmp/1000.0);
-		}
-		
-		
-
 	}
 
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
@@ -215,13 +205,6 @@ public class ChordNode {
 			selNode = selectRandomNode();
 		}
 		node.join(selNode.getId());
-	}
-
-	public void retryLookup(Integer nodeId, Integer key) {
-		Node node = this.nodes.get(nodeId);
-		if (node != null) {
-			node.lookup(key);
-		}
 	}
 
 	public Node selectRandomNode() {
@@ -253,6 +236,48 @@ public class ChordNode {
 					singleNodeEdges.remove(i);
 				}
 			}
+		}
+	}
+	
+	// need to disable simulateChurnRate() when running this ecperiment
+	// @ScheduledMethod(start = 3, interval = 0)
+	public void simultaneousNodeFailures() {
+		int n_FailAndJoin = (int) (this.num_nodes * 0);
+
+		for (int i = 0; i < n_FailAndJoin; i++) {
+			Node node = selectRandomNode(); 	// choose a node randomly
+			Integer key = node.getId(); 		// get its key
+			node.removeAllSchedule(); 			// remove all its scheduled actions
+			this.nodes.remove(key); 			// remove it from the set of nodes
+			this.context.remove(node); 			// remove it from the context
+			this.router.removeANode(key); 		// signal to the router to remove it
+			this.edges.remove(key); 			// remove it from the hash edges
+			// System.out.println("Node" + key + " crashes");
+		}
+		
+		for (int i=0; i<10000; i++) {
+			Node randomNode = selectRandomNode();
+			int lookupKey = rnd.nextInt(SPACEDIMENSION);
+			while (randomNode.getState() == NodeState.NEW) {
+				randomNode = selectRandomNode();
+			}
+			randomNode.lookup(lookupKey);
+		}
+	}
+	
+	// @ScheduledMethod(start = 50, interval = 100)
+	public void computeSimultaneousNodeFailureExpResults() {
+		double tmp = 0;
+		double tmp2 = 0;
+		for(int i=0; i< this.successfulRequests.size(); i++){
+			tmp += this.successfulRequests.get(i).getPathLength()-1;
+			tmp2 += this.successfulRequests.get(i).getBrokenPaths().size();
+		}			
+		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: " + tmp/this.successfulRequests.size());
+		System.out.println("Mean Num. of Timeouts for " + this.successfulRequests.size() + " lookups: " + tmp2/this.successfulRequests.size());
+	
+		if ( RunEnvironment.getInstance().getCurrentSchedule().getTickCount() > 1000) {
+			System.out.println(this.successfulRequests.toString());
 		}
 	}
 }

@@ -39,21 +39,6 @@ public class SchedulableActions {
 		}
 	}
 
-	public static class MasterRetryLookup implements IAction {
-		private ChordNode master;
-		private Integer key;
-		private Integer nodeId;
-
-		public MasterRetryLookup(ChordNode master, Integer key, Integer nodeId) {
-			this.key = key;
-			this.master = master;
-		}
-
-		public void execute() {
-			this.master.retryLookup(nodeId, key);
-		}
-	}
-
 	public static class StabilizeFailCheck implements IAction {
 		private Node node;
 

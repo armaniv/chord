@@ -15,7 +15,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 5000000;
+	private Integer SPACEDIMENSION = 500000;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Integer SUCCESSOR_TABLE_SIZE;
 
@@ -281,7 +281,7 @@ public class ChordNode {
 		}
 	}
 	
-	@ScheduledMethod(start = 1)
+	//@ScheduledMethod(start = 1)
 	public void evaluateKeyDistribution() {
 		ArrayList<Integer> sortedKeys = new ArrayList<>(nodes.keySet());
 		Collections.sort(sortedKeys);
@@ -308,7 +308,12 @@ public class ChordNode {
 		int ninetyNinthPerc = computePercentile(99, numKeys);
 		 
 		//System.out.println("Space=" + this.SPACEDIMENSION + " n=" + sortedKeys.size() + " Avg=" +  avg + " 1%=" + firstPerc + " 99%=" + ninetyNinthPerc);
-		System.out.println(Integer.MAX_VALUE  + ";" + sortedKeys.size() + ";" +  avg + ";" + firstPerc + ";" + ninetyNinthPerc);
+		//System.out.println(Integer.MAX_VALUE  + ";" + sortedKeys.size() + ";" +  avg + ";" + firstPerc + ";" + ninetyNinthPerc);
+		
+		/*//In order to computer PDF_keysxnode.txt
+		for(int i=0; i<numKeys.size(); i++ ) {
+			System.out.println(numKeys.get(i));
+		}*/
 	}
 	
 	public int computePercentile(int percentile, ArrayList<Integer> list) {

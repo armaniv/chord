@@ -395,7 +395,7 @@ public class Node {
 		// FIND_SUCC(JOIN,"+this.id.toString()+") to " + nodeId.toString());
 	}
 
-	@ScheduledMethod(start = 4, interval = 32)
+	@ScheduledMethod(start = 4, interval = 600)
 	public void fixFingers() {
 		if (getFirstSuccesor() == null)
 			return; // still JOINing
@@ -424,7 +424,7 @@ public class Node {
 		sendFindSucc(fixFingersMessage, true);
 	}
 
-	@ScheduledMethod(start = 4, interval = 32)
+	@ScheduledMethod(start = 4, interval = 600)
 	public void stabilize() {
 		if (getFirstSuccesor() != null) {
 			Message msgStabilize = new Message(MessageType.STABILIZE, this.id, getFirstSuccesor());

@@ -15,7 +15,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = 500000;
+	private Integer SPACEDIMENSION = Integer.MAX_VALUE;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Integer SUCCESSOR_TABLE_SIZE;
 
@@ -142,7 +142,7 @@ public class ChordNode {
 
 	// generate a random lookup(key, node)
 	// node is the node responsible for the lookup
-	//@ScheduledMethod(start = 1, interval = 5)
+	@ScheduledMethod(start = 1, interval = 40)
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
@@ -152,7 +152,7 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 3, interval = 32)
+	@ScheduledMethod(start = 3, interval = 600)
 	public void simulateChurnRate() {
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 
@@ -193,6 +193,11 @@ public class ChordNode {
 
 	public void signalSuccessuful(FindSuccReq req) {
 		this.successfulRequests.add(req);
+		
+		//In order to compute table mean path with failure during stabilization
+		/*if(this.successfulRequests.size()==1000) {
+			computeDuringStabilizationNodeFailureExpResults();
+		}*/
 	}
 
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
@@ -281,6 +286,17 @@ public class ChordNode {
 		}
 	}
 	
+	public void computeDuringStabilizationNodeFailureExpResults() {
+		double tmp = 0;
+		double tmp2 = 0;
+		for(int i=0; i< this.successfulRequests.size(); i++){
+			tmp += this.successfulRequests.get(i).getPathLength()-1;
+			tmp2 += this.successfulRequests.get(i).getBrokenPaths().size();
+		}			
+		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: " + tmp/this.successfulRequests.size());
+		System.out.println("Mean Num. of Timeouts for " + this.successfulRequests.size() + " lookups: " + tmp2/this.successfulRequests.size());
+	}
+	
 	//@ScheduledMethod(start = 1)
 	public void evaluateKeyDistribution() {
 		ArrayList<Integer> sortedKeys = new ArrayList<>(nodes.keySet());
@@ -307,11 +323,11 @@ public class ChordNode {
 		int firstPerc = computePercentile(1, numKeys);
 		int ninetyNinthPerc = computePercentile(99, numKeys);
 		 
-		//System.out.println("Space=" + this.SPACEDIMENSION + " n=" + sortedKeys.size() + " Avg=" +  avg + " 1%=" + firstPerc + " 99%=" + ninetyNinthPerc);
-		//System.out.println(Integer.MAX_VALUE  + ";" + sortedKeys.size() + ";" +  avg + ";" + firstPerc + ";" + ninetyNinthPerc);
+		//In order to computer AVG_keysxnode.txt
+		//System.out.println(this.SPACEDIMENSION  + ";" + sortedKeys.size() + ";" +  avg + ";" + firstPerc + ";" + ninetyNinthPerc);
 		
-		/*//In order to computer PDF_keysxnode.txt
-		for(int i=0; i<numKeys.size(); i++ ) {
+		//In order to computer PDF_keysxnode.txt
+		/*for(int i=0; i<numKeys.size(); i++ ) {
 			System.out.println(numKeys.get(i));
 		}*/
 	}
@@ -329,7 +345,6 @@ public class ChordNode {
 			value = Integer.valueOf(list.get((int) index -1));
 		}
 		return value;
-
 	}
 	
 }

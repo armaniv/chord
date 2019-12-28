@@ -7,13 +7,13 @@
 									
 		/>
 				<parameter name="p_fail" displayName="P single node failure" type="double" 
-						defaultValue="0.0" 
+						defaultValue="0.002" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 				<parameter name="num_nodes" displayName="Number of nodes" type="int" 
-						defaultValue="10000" 
+						defaultValue="1000" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

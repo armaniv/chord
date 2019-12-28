@@ -15,7 +15,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 
 public class ChordNode {
-	private Integer SPACEDIMENSION = Integer.MAX_VALUE;
+	private Integer SPACEDIMENSION = 5000000;
 	private Integer FINGER_TABLE_SIZE = (int) (Math.log(SPACEDIMENSION) / Math.log(2));
 	private Integer SUCCESSOR_TABLE_SIZE;
 
@@ -239,7 +239,7 @@ public class ChordNode {
 		}
 	}
 	
-	// need to disable simulateChurnRate() when running this ecperiment
+	// need to disable simulateChurnRate() when running this experiment
 	// @ScheduledMethod(start = 3, interval = 0)
 	public void simultaneousNodeFailures() {
 		int n_FailAndJoin = (int) (this.num_nodes * 0);
@@ -280,4 +280,51 @@ public class ChordNode {
 			System.out.println(this.successfulRequests.toString());
 		}
 	}
+	
+	@ScheduledMethod(start = 1)
+	public void evaluateKeyDistribution() {
+		ArrayList<Integer> sortedKeys = new ArrayList<>(nodes.keySet());
+		Collections.sort(sortedKeys);
+		ArrayList<Integer> numKeys = new ArrayList<>();
+		
+		for(int i = sortedKeys.size() - 1; i >= 0; i--) {
+			if(i>0) {
+				int numkey = Integer.valueOf(sortedKeys.get(i)) - Integer.valueOf(sortedKeys.get(i - 1));
+				numKeys.add(numkey);
+			}else {
+				int numkey = Integer.valueOf(sortedKeys.get(i)) + (this.SPACEDIMENSION - Integer.valueOf(sortedKeys.get(sortedKeys.size() -1)));
+				numKeys.add(numkey);
+			}	
+		}
+		
+		double total = 0;
+		for (int i = 0; i < numKeys.size(); i++) {
+			total = total + numKeys.get(i);
+		}
+		
+		double avg = total/numKeys.size();
+		
+		int firstPerc = computePercentile(1, numKeys);
+		int ninetyNinthPerc = computePercentile(99, numKeys);
+		 
+		//System.out.println("Space=" + this.SPACEDIMENSION + " n=" + sortedKeys.size() + " Avg=" +  avg + " 1%=" + firstPerc + " 99%=" + ninetyNinthPerc);
+		System.out.println(Integer.MAX_VALUE  + ";" + sortedKeys.size() + ";" +  avg + ";" + firstPerc + ";" + ninetyNinthPerc);
+	}
+	
+	public int computePercentile(int percentile, ArrayList<Integer> list) {
+		Collections.sort(list);
+
+		int value;
+		
+		double index = list.size() * (percentile / 100.0);
+		if (index % 1 == 0) {
+			value = (Integer.valueOf(list.get((int) index)) + Integer.valueOf(list.get((int) index))) / 2;
+		} else {
+			Math.round(index);
+			value = Integer.valueOf(list.get((int) index -1));
+		}
+		return value;
+
+	}
+	
 }

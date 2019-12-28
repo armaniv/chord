@@ -222,8 +222,8 @@ public class Node {
 			break;
 		case JOIN:
 			ArrayList<Integer> succList = message.getSuccessorList();
-			this.successorList = new ArrayList<Integer>(succList.subList(0, succList.size() - 1));
 			this.successorList.add(0, message.getSourceNode());
+			MergeSuccessorList(succList, false);
 			/*System.out.println("Node " + this.id + " JOINS with succ=" + message.getSuccessor() + "; MsgPath: "
 					+ Arrays.toString(messagePath.toArray()));*/
 			break;
@@ -511,7 +511,7 @@ public class Node {
 			elemOne = this.successorList.get(1);
 		}
 
-		this.successorList = (ArrayList<Integer>) msgSuccessorList.clone();
+		this.successorList = makeDeepCopyInteger(msgSuccessorList);
 
 		if (newSuccesor && elemOne != null) {
 			this.successorList.add(0, elemOne);
@@ -522,6 +522,14 @@ public class Node {
 		while (this.successorList.size() > SUCCESSOR_TABLE_SIZE) {
 			this.successorList.remove(this.successorList.size() - 1);
 		}
+	}
+	
+	private ArrayList<Integer> makeDeepCopyInteger(ArrayList<Integer> old){
+	    ArrayList<Integer> copy = new ArrayList<Integer>(old.size());
+	    for(Integer i : old){
+	        copy.add(i);
+	    }
+	    return copy;
 	}
 
 	public Integer getFirstSuccesor() {

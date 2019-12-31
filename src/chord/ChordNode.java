@@ -96,6 +96,7 @@ public class ChordNode {
 				}
 			}
 
+			// System.out.println(id + ": " + Arrays.toString(fingerTable));
 			node.setFingerTable(fingerTable);
 
 			ArrayList<Integer> successorList = new ArrayList<>();
@@ -109,6 +110,7 @@ public class ChordNode {
 				startIndex++;
 			}
 
+			// System.out.println(key + ": " + Arrays.toString(successorList.toArray()));
 			node.setSuccessorList(successorList);
 
 			// set predecessor
@@ -140,7 +142,7 @@ public class ChordNode {
 
 	// generate a random lookup(key, node)
 	// node is the node responsible for the lookup
-	@ScheduledMethod(start = 1, interval = 40)
+	//@ScheduledMethod(start = 1, interval = 5)
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
@@ -150,51 +152,47 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	@ScheduledMethod(start = 3, interval = 600)
+	//@ScheduledMethod(start = 3, interval = 32)
 	public void simulateChurnRate() {
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 
 		for (int i = 0; i < n_FailAndJoin; i++) {
-			Node node = selectRandomNode(); // choose a node randomly
-			Integer key = node.getId(); 	// get its key
-			node.removeAllSchedule(); 		// remove all its scheduled actions
-			this.nodes.remove(key); 		// remove it from the set of nodes
-			this.context.remove(node); 		// remove it from the context
-			this.router.removeANode(key); 	// signal to the router to remove it
-			this.edges.remove(key); 		// remove it from the hash edges
+			Node node = selectRandomNode(); 	// choose a node randomly
+			Integer key = node.getId(); 		// get its key
+			node.removeAllSchedule(); 			// remove all its scheduled actions
+			this.nodes.remove(key); 			// remove it from the set of nodes
+			this.context.remove(node); 			// remove it from the context
+			this.router.removeANode(key); 		// signal to the router to remove it
+			this.edges.remove(key); 			// remove it from the hash edges
+			// System.out.println("Node" + key + " crashes");
 		}
 
 		for (int i = 0; i < n_FailAndJoin; i++) {
+			// Generate a new node
 			int id = -1;
 			while (id == -1 || this.nodes.containsKey(id)) {
 				id = rnd.nextInt(SPACEDIMENSION);
 			}
-			
-			// Generate a new node
+
 			Node node = new Node(id, FINGER_TABLE_SIZE, SUCCESSOR_TABLE_SIZE, router, this, NodeState.NEW);
 
-			this.context.add(node); 	// add it to the context
-			this.router.addNode(node); 	// add it to the router
-			visualizeNode(node); 		// visualize it on the display
+			this.context.add(node); 		// add it to the context
+			this.router.addNode(node); 		// add it to the router
+			visualizeNode(node); 			// visualize it on the display
 
 			Node selNode = selectRandomNode();
 			while (selNode.getState() == NodeState.NEW) {
 				selNode = selectRandomNode();
 			}
-			this.nodes.put(id, node); 	// add it to nodes
+			this.nodes.put(id, node); 		// add it to nodes
 
-			node.join(selNode.getId()); // call Join() on it
+			// System.out.println("Node " + id + " joining");
+			node.join(selNode.getId()); 	// call Join() on it
 		}
 	}
 
 	public void signalSuccessuful(FindSuccReq req) {
 		this.successfulRequests.add(req);
-
-		// In order to compute table mean path with failure during stabilization
-		/*
-		 * if(this.successfulRequests.size()==1000) {
-		 * computeDuringStabilizationNodeFailureExpResults(); }
-		 */
 	}
 
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
@@ -240,23 +238,24 @@ public class ChordNode {
 			}
 		}
 	}
-
+	
 	// need to disable simulateChurnRate() when running this experiment
-	// @ScheduledMethod(start = 3, interval = 0)
+	@ScheduledMethod(start = 3, interval = 0)
 	public void simultaneousNodeFailures() {
-		int n_FailAndJoin = (int) (this.num_nodes * 0);
+		int n_FailAndJoin = (int) (this.num_nodes * 0.5);
 
 		for (int i = 0; i < n_FailAndJoin; i++) {
-			Node node = selectRandomNode(); // choose a node randomly
-			Integer key = node.getId(); 	// get its key
-			node.removeAllSchedule(); 		// remove all its scheduled actions
-			this.nodes.remove(key); 		// remove it from the set of nodes
-			this.context.remove(node); 		// remove it from the context
-			this.router.removeANode(key); 	// signal to the router to remove it
-			this.edges.remove(key); 		// remove it from the hash edges
+			Node node = selectRandomNode(); 	// choose a node randomly
+			Integer key = node.getId(); 		// get its key
+			node.removeAllSchedule(); 			// remove all its scheduled actions
+			this.nodes.remove(key); 			// remove it from the set of nodes
+			this.context.remove(node); 			// remove it from the context
+			this.router.removeANode(key); 		// signal to the router to remove it
+			this.edges.remove(key); 			// remove it from the hash edges
+			// System.out.println("Node" + key + " crashes");
 		}
-
-		for (int i = 0; i < 10000; i++) {
+		
+		for (int i=0; i<10000; i++) {
 			Node randomNode = selectRandomNode();
 			int lookupKey = rnd.nextInt(SPACEDIMENSION);
 			while (randomNode.getState() == NodeState.NEW) {
@@ -265,25 +264,31 @@ public class ChordNode {
 			randomNode.lookup(lookupKey);
 		}
 	}
-
-	// @ScheduledMethod(start = 50, interval = 100)
+	
+	@ScheduledMethod(start = 50, interval = 100)
 	public void computeSimultaneousNodeFailureExpResults() {
 		double tmp = 0;
 		double tmp2 = 0;
-		for (int i = 0; i < this.successfulRequests.size(); i++) {
-			tmp += this.successfulRequests.get(i).getPathLength() - 1;
-			tmp2 += this.successfulRequests.get(i).getBrokenPaths().size();
-		}
+		ArrayList<Integer> pathLengths = new ArrayList<Integer>();
+		ArrayList<Integer> timeouts = new ArrayList<Integer>();
+		for(int i=0; i< this.successfulRequests.size(); i++){
+			Integer pathLength = this.successfulRequests.get(i).getPathLength()-1;
+			Integer numberOfTimeouts = this.successfulRequests.get(i).getBrokenPaths().size();
+			pathLengths.add(pathLength);
+			timeouts.add(numberOfTimeouts);
+			tmp += pathLength;
+			tmp2 += numberOfTimeouts;
+		}			
+		double meanPath = tmp / this.successfulRequests.size();
 		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: "
-				+ tmp / this.successfulRequests.size());
-		System.out.println("Mean Num. of Timeouts for " + this.successfulRequests.size() + " lookups: "
-				+ tmp2 / this.successfulRequests.size());
-
-		if (RunEnvironment.getInstance().getCurrentSchedule().getTickCount() > 1000) {
-			System.out.println(this.successfulRequests.toString());
-		}
+				+ String.valueOf(meanPath));
+		System.out.println("1st Percentile Path Length: " + computePercentile(1, pathLengths));
+		System.out.println("99st Percentile Path Length: " + computePercentile(99, pathLengths));
+		System.out.println("Mean Num. of Timeouts " + tmp2 / this.successfulRequests.size());
+		System.out.println("1st Percentile Num. of Timeouts: " + computePercentile(1, timeouts));
+		System.out.println("99st Percentile Num. of Timeouts: " + computePercentile(99, timeouts));
 	}
-
+	
 	public void computeDuringStabilizationNodeFailureExpResults() {
 		double tmp = 0;
 		double tmp2 = 0;
@@ -348,5 +353,4 @@ public class ChordNode {
 		}
 		return value;
 	}
-
 }

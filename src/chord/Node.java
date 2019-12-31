@@ -27,7 +27,7 @@ public class Node {
 	private PendingFindSuccReq pendingFindSuccReq;
 	private ArrayList<ISchedulableAction> actions = new ArrayList<>();
 	private NodeState state;
-	private int maxRetry = 5;
+	private int maxRetry = 20;
 	private Integer counter = 0;
 	private Integer lastStabilizeId = -1;
 
@@ -451,7 +451,6 @@ public class Node {
 	 * tick in which lastStabilizeId is set again
 	 */
 	public void stabilizeFailCheck() {
-
 		if (this.lastStabilizeId != null) {
 			removeFirtSuccessor();
 		}

@@ -120,7 +120,7 @@ public class Node {
 				return entry;
 			}
 		}
-		return getFirstSuccesor();
+		return this.id;
 	}
 
 	private void notifySuccChange(Integer succ, Integer oldPred) {

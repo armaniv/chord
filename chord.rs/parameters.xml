@@ -7,7 +7,7 @@
 									
 		/>
 				<parameter name="p_fail" displayName="P single node failure" type="double" 
-						defaultValue="0.008" 
+						defaultValue="0.002" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									

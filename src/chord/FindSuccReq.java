@@ -74,11 +74,11 @@ public class FindSuccReq {
 	public ArrayList<ArrayList<Integer>> getBrokenPaths() {
 		return brokenPaths;
 	}
-	
+
 	public int getPathLength() {
 		return this.messagePath.size();
 	}
-	
+
 	public String toString() {
 		return String.valueOf(this.messagePath.size());
 	}

@@ -1,0 +1,13 @@
+set datafile separator ";"
+set xlabel 'Total number of keys'
+set ylabel 'Number of keys per node'
+
+set xrange [0:1100000]
+set format x '%.s%c'
+
+set key inside left top
+
+set term pngcairo             
+set output "AVG_keysxnode.png"
+
+plot "AVG_keysxnode.txt" u 1:3:4:5 w yerrorbars linestyle 1 lw 2 t '1st and 99th percentiles'

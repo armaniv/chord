@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PendingFindSuccReq {
-	// ASSUMPTION: a node can serve only 1 request per key per time
-	// if a node tries to add an already existent lookup, lookup will
-	// not be added to the pending lookups and it will be actually ignored
 	private HashMap<Integer, FindSuccReq> pendingRequests;
 
 	public PendingFindSuccReq() {

@@ -1,0 +1,10 @@
+set xlabel 'Number of keys per node'
+set ylabel 'PDF'
+
+set key inside left bottom
+
+set term pngcairo             
+set output "PDF_keysxnode.png"
+
+stats "PDF_keysxnode.txt"
+plot "PDF_keysxnode.txt" u 1:(1./STATS_records) smooth frequency w boxes title ''

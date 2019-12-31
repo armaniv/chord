@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Random;
 
 import repast.simphony.context.Context;
-import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.graph.Network;
@@ -142,7 +141,7 @@ public class ChordNode {
 
 	// generate a random lookup(key, node)
 	// node is the node responsible for the lookup
-	//@ScheduledMethod(start = 1, interval = 5)
+	@ScheduledMethod(start = 1, interval = 5)
 	public void generateLookup() {
 		Node randomNode = selectRandomNode();
 		int lookupKey = rnd.nextInt(SPACEDIMENSION);
@@ -152,7 +151,7 @@ public class ChordNode {
 		randomNode.lookup(lookupKey);
 	}
 
-	//@ScheduledMethod(start = 3, interval = 32)
+	@ScheduledMethod(start = 3, interval = 32)
 	public void simulateChurnRate() {
 		int n_FailAndJoin = (int) (this.num_nodes * this.p_fail);
 
@@ -240,9 +239,9 @@ public class ChordNode {
 	}
 	
 	// need to disable simulateChurnRate() when running this experiment
-	@ScheduledMethod(start = 3, interval = 0)
+	// @ScheduledMethod(start = 3, interval = 0)
 	public void simultaneousNodeFailures() {
-		int n_FailAndJoin = (int) (this.num_nodes * 0.5);
+		int n_FailAndJoin = (int) (this.num_nodes * 0);
 
 		for (int i = 0; i < n_FailAndJoin; i++) {
 			Node node = selectRandomNode(); 	// choose a node randomly
@@ -265,7 +264,7 @@ public class ChordNode {
 		}
 	}
 	
-	@ScheduledMethod(start = 50, interval = 100)
+	// @ScheduledMethod(start = 50, interval = 100)
 	public void computeSimultaneousNodeFailureExpResults() {
 		double tmp = 0;
 		double tmp2 = 0;
@@ -282,24 +281,8 @@ public class ChordNode {
 		double meanPath = tmp / this.successfulRequests.size();
 		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: "
 				+ String.valueOf(meanPath));
-		System.out.println("1st Percentile Path Length: " + computePercentile(1, pathLengths));
-		System.out.println("99st Percentile Path Length: " + computePercentile(99, pathLengths));
 		System.out.println("Mean Num. of Timeouts " + tmp2 / this.successfulRequests.size());
-		System.out.println("1st Percentile Num. of Timeouts: " + computePercentile(1, timeouts));
-		System.out.println("99st Percentile Num. of Timeouts: " + computePercentile(99, timeouts));
-	}
-	
-	public void computeDuringStabilizationNodeFailureExpResults() {
-		double tmp = 0;
-		double tmp2 = 0;
-		for (int i = 0; i < this.successfulRequests.size(); i++) {
-			tmp += this.successfulRequests.get(i).getPathLength() - 1;
-			tmp2 += this.successfulRequests.get(i).getBrokenPaths().size();
-		}
-		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: "
-				+ tmp / this.successfulRequests.size());
-		System.out.println("Mean Num. of Timeouts for " + this.successfulRequests.size() + " lookups: "
-				+ tmp2 / this.successfulRequests.size());
+		System.out.println(this.successfulRequests.toString());
 	}
 
 	// @ScheduledMethod(start = 1)

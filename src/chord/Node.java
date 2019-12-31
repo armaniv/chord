@@ -106,7 +106,7 @@ public class Node {
 		if (insideInterval(id, this.id, getFirstSuccesor() + 1)) {
 			return getFirstSuccesor();
 		} else {
-			Integer cpNode = closestPrecedingNode(id);
+			Integer cpNode = closestPrecedingNode(id+1);
 			return cpNode;
 		}
 	}
@@ -120,7 +120,7 @@ public class Node {
 				return entry;
 			}
 		}
-		return getFirstSuccesor();
+		return this.id;
 	}
 
 	private void notifySuccChange(Integer succ, Integer oldPred) {
@@ -187,7 +187,6 @@ public class Node {
 	// remove pendingLookup and deliver it to master
 	public void onFoundKey(Message message) {
 		FindSuccReq request = this.pendingFindSuccReq.removeRequest(message.getReqId());
-		ArrayList<Integer> messagePath = request.getMessagePath();
 		switch (message.getSubType()) {
 		case LOOKUP:
 			this.masterNode.signalSuccessuful(request);
@@ -201,7 +200,6 @@ public class Node {
 		case FIX_FINGERS:
 			Integer succ = message.getSuccessor();
 			Integer next = request.getNext();
-			Integer old = this.fingerTable[next];
 			this.fingerTable[next] = succ;
 			break;
 		default:
@@ -213,6 +211,7 @@ public class Node {
 		if (value == null || a == null || b == null) {
 			return false;
 		}
+		//if (value.equals(a) || value.equals(b)) return true;
 		if (value > a && value < b) {
 			return true;
 		}

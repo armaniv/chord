@@ -1,6 +1,7 @@
 package chord;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class FindSuccReq {
 	private Integer findSuccKey;
@@ -76,7 +77,8 @@ public class FindSuccReq {
 	}
 
 	public int getPathLength() {
-		return this.messagePath.size();
+		HashSet<Integer> unique = new HashSet<Integer>(this.messagePath);
+		return unique.size();
 	}
 
 	public String toString() {

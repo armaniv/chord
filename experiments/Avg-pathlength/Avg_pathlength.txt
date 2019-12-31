@@ -1,7 +1,0 @@
-fraction of failed nodes, mean path length, mean number of timeouts
-0, 8.8, 0
-0.1, 7, 0.28
-0.2, 7.3, 0.75
-0.3, 7.8, 1
-0.4, 7.8, 1.25
-0.5, 8, 1.8

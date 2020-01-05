@@ -1,5 +1,5 @@
 # Chord
-This project implements "Chord: A Scalable Peer-to-peer Lookup Protocol for Internet Applications" algorithm. All the informations about protocol specifications can be found in the original paper.
+This project implements "Chord: A Scalable Peer-to-peer Lookup Protocol for Internet Applications" algorithm. All the informations about protocol specifications can be found in the original paper. Moreover if you want to have a detailed view about the architecture of this implementation please read the report present in `/docs/Report`.
 
 ## Requirements
 * Java 11 
@@ -29,12 +29,21 @@ When the simulator is running, a GUI is showed to the user which presents some i
 
 
 ## Test
-In order to test the implementation we have four types of statistics which can be computed and analyzed:
-* Load balance: composted of the average number and the the probability density function (PDF) of the number of keys per node that a node is responsible for. 
-* Simultaneous Node Failures:  we evaluate the ability to performing lookups in case of a massive failure of nodes by computing the average path length.   
-* Lookups During Stabilization: we evaluate the ability to performing lookups when nodes are continuously joining and crashing by computing the average path length.
-
-All these experiments are computed in one shot at a specified tick count, outputted using Java System.out.println(), collected and used to plot graphics using gnuplot. Hence, in order to output the results of the experiments, you have to check the standard output of the java program and analyze the numbers and use gnuplot or a similar tools to plot charts.
+To evaluate that in our implementation the communication cost and the state maintained  by  each  node  scale  logarithmically  with  the  number  of  nodes,  we performed some experiments.  Results of the are computed before at the end of a stabilization round.  We basically analyze the following 3 probability distributions:
+* Number of Keys per Node - from which we calculate the mean, 1stand 99th percentiles.
+* Lookup Path Length - from which we compute mean
+* Number of Timeouts per Lookup - from which we compute the mean
+If the reader of this report desires to test such computed measures, it has to execute the code in development mode and inspect its IDE's console. An example of the output is the following:
+        
+```
+########## SIMULATION 1578266879519##########
+Nodes: [459282, 1053995, 14729669, 14948457, 16542290, ...]
+Space Dimension; Num. of Keys; Mean Num. of Keys; 1st percentile; 99th percentile
+2147483647;1000;2147483.647;16272;9780939
+Num. of Keys per Node Distribution: [1065;1096;3224;3307;4776;5803;7669;10324;....]
+Mean Path Length: 6.7025779917745005
+Mean Num. of Timeouts: 0.003912127595546194
+```
 
 ## Reference
 

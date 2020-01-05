@@ -4,7 +4,7 @@ This project implements "Chord: A Scalable Peer-to-peer Lookup Protocol for Inte
 ## Requirements
 * Java 11 
 * [Eclipse IDE Version: 2019-06 (4.12.0)](https://www.eclipse.org/downloads/packages/release/2019-06)
-* [Symphony Version: 2.7](https://repast.github.io/)
+* [Repast Symphony Version: 2.7](https://repast.github.io/)
 * [gnuplot](http://www.gnuplot.info/) (OPTIONAL)
 
 ## Simulator configuration

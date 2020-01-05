@@ -33,6 +33,7 @@ To evaluate that in our implementation the communication cost and the state main
 * Number of Keys per Node - from which we calculate the mean, 1stand 99th percentiles.
 * Lookup Path Length - from which we compute mean
 * Number of Timeouts per Lookup - from which we compute the mean
+
 If the reader of this report desires to test such computed measures, it has to execute the code in development mode and inspect its IDE's console. An example of the output is the following:
         
 ```

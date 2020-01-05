@@ -50,6 +50,7 @@ Space Dimension; Num. of Keys; Mean Num. of Keys; 1st percentile; 99th percentil
 Num. of Keys per Node Distribution: [1065;1096;3224;3307;4776;5803;7669;10324;....]
 Mean Path Length: 6.7025779917745005
 Mean Num. of Timeouts: 0.003912127595546194
+```
 
 ## Reference
 

@@ -26,6 +26,8 @@ public class ChordNode {
 
 	private Integer num_nodes;
 	private Double p_fail;
+	private int n_lookups;
+	private int n_lookups2;
 	private Random rnd; // Java random, approximately uniform distributed
 	private HashMap<Integer, Node> nodes;
 	private HashMap<Integer, ArrayList<RepastEdge<Object>>> edges;
@@ -33,7 +35,7 @@ public class ChordNode {
 	private ArrayList<FindSuccReq> successfulRequests;
 	private ArrayList<FindSuccReq> unsuccessfulRequests;
 
-	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, double p_fail) {
+	public ChordNode(Context<Object> context, ContinuousSpace<Object> space, int num_nodes, double p_fail, int n_lookups, int n_lookups2) {
 		this.context = context;
 		this.space = space;
 		this.network = (Network<Object>) context.getProjection("lookup_network");
@@ -42,6 +44,8 @@ public class ChordNode {
 		this.num_nodes = num_nodes;
 		this.SUCCESSOR_TABLE_SIZE = 2 * (int) (Math.log(num_nodes) / Math.log(2)); // 2*log N
 		this.p_fail = p_fail;
+		this.n_lookups = n_lookups;
+		this.n_lookups2 = n_lookups2;
 		this.rnd = new Random();
 		this.nodes = new HashMap<Integer, Node>();
 		this.edges = new HashMap<Integer, ArrayList<RepastEdge<Object>>>();
@@ -69,9 +73,13 @@ public class ChordNode {
 	}
 
 	private void createInitialFingerTables() {
+		System.out.println("########## SIMULATION " + System.currentTimeMillis() + "##########");
+		System.out.println();
+		
 		List<Integer> sortedKeys = new ArrayList<>(nodes.keySet());
 		Collections.sort(sortedKeys);
-		System.out.println(Arrays.toString(sortedKeys.toArray()));
+		System.out.println("Nodes: " + Arrays.toString(sortedKeys.toArray()));
+		System.out.println();
 
 		int counter = 1;
 		Integer predecessor = null;
@@ -140,14 +148,28 @@ public class ChordNode {
 
 	// generate a random lookup(key, node)
 	// node is the node responsible for the lookup
-	@ScheduledMethod(start = 1, interval = 40)
+	@ScheduledMethod(start = 4, interval = 600)
 	public void generateLookup() {
-		Node randomNode = selectRandomNode();
-		int lookupKey = rnd.nextInt(SPACEDIMENSION);
-		while (randomNode.getState() == NodeState.NEW) {
-			randomNode = selectRandomNode();
+		for (int i=0; i<this.n_lookups; i++) {
+			Node randomNode = selectRandomNode();
+			int lookupKey = rnd.nextInt(SPACEDIMENSION);
+			while (randomNode.getState() == NodeState.NEW) {
+				randomNode = selectRandomNode();
+			}
+			randomNode.lookup(lookupKey);
 		}
-		randomNode.lookup(lookupKey);
+	}
+	
+	@ScheduledMethod(start = 4, interval = 40)
+	public void generateLookup2() {
+		for (int i=0; i<this.n_lookups2; i++) {
+			Node randomNode = selectRandomNode();
+			int lookupKey = rnd.nextInt(SPACEDIMENSION);
+			while (randomNode.getState() == NodeState.NEW) {
+				randomNode = selectRandomNode();
+			}
+			randomNode.lookup(lookupKey);
+		}
 	}
 
 	@ScheduledMethod(start = 3, interval = 600)
@@ -189,12 +211,6 @@ public class ChordNode {
 
 	public void signalSuccessuful(FindSuccReq req) {
 		this.successfulRequests.add(req);
-
-		// In order to compute table mean path with failure during stabilization
-		/*
-		 * if(this.successfulRequests.size()==1000) {
-		 * computeDuringStabilizationNodeFailureExpResults(); }
-		 */
 	}
 
 	public void signalUnsuccessful(FindSuccReq req, Integer resolverNodeId) {
@@ -241,64 +257,23 @@ public class ChordNode {
 		}
 	}
 
-	// need to disable simulateChurnRate() when running this experiment
-	// @ScheduledMethod(start = 3, interval = 0)
-	public void simultaneousNodeFailures() {
-		int n_FailAndJoin = (int) (this.num_nodes * 0);
-
-		for (int i = 0; i < n_FailAndJoin; i++) {
-			Node node = selectRandomNode(); // choose a node randomly
-			Integer key = node.getId(); 	// get its key
-			node.removeAllSchedule(); 		// remove all its scheduled actions
-			this.nodes.remove(key); 		// remove it from the set of nodes
-			this.context.remove(node); 		// remove it from the context
-			this.router.removeANode(key); 	// signal to the router to remove it
-			this.edges.remove(key); 		// remove it from the hash edges
-		}
-
-		for (int i = 0; i < 10000; i++) {
-			Node randomNode = selectRandomNode();
-			int lookupKey = rnd.nextInt(SPACEDIMENSION);
-			while (randomNode.getState() == NodeState.NEW) {
-				randomNode = selectRandomNode();
-			}
-			randomNode.lookup(lookupKey);
-		}
-	}
-
-	// @ScheduledMethod(start = 50, interval = 100)
-	public void computeSimultaneousNodeFailureExpResults() {
+	@ScheduledMethod(start = 600, interval = 0)
+	public void computeMeanPathAndNumOfTimeouts() {
 		double tmp = 0;
 		double tmp2 = 0;
 		for (int i = 0; i < this.successfulRequests.size(); i++) {
 			tmp += this.successfulRequests.get(i).getPathLength() - 1;
 			tmp2 += this.successfulRequests.get(i).getBrokenPaths().size();
 		}
-		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: "
-				+ tmp / this.successfulRequests.size());
-		System.out.println("Mean Num. of Timeouts for " + this.successfulRequests.size() + " lookups: "
-				+ tmp2 / this.successfulRequests.size());
-
-		if (RunEnvironment.getInstance().getCurrentSchedule().getTickCount() > 1000) {
-			System.out.println(this.successfulRequests.toString());
-		}
+		System.out.println("Mean Path Length: "+ tmp / this.successfulRequests.size());
+		System.out.println();
+		
+		System.out.println("Mean Num. of Timeouts: "+ tmp2 / this.successfulRequests.size());
+		System.out.println();
 	}
 
-	public void computeDuringStabilizationNodeFailureExpResults() {
-		double tmp = 0;
-		double tmp2 = 0;
-		for (int i = 0; i < this.successfulRequests.size(); i++) {
-			tmp += this.successfulRequests.get(i).getPathLength() - 1;
-			tmp2 += this.successfulRequests.get(i).getBrokenPaths().size();
-		}
-		System.out.println("Mean Path Length for " + this.successfulRequests.size() + " lookups: "
-				+ tmp / this.successfulRequests.size());
-		System.out.println("Mean Num. of Timeouts for " + this.successfulRequests.size() + " lookups: "
-				+ tmp2 / this.successfulRequests.size());
-	}
-
-	// @ScheduledMethod(start = 1)
-	public void evaluateKeyDistribution() {
+	@ScheduledMethod(start = 1, interval = 0)
+	public void computeAVGAndPDFOfNumOfKeysPerNode() {
 		ArrayList<Integer> sortedKeys = new ArrayList<>(nodes.keySet());
 		Collections.sort(sortedKeys);
 		ArrayList<Integer> numKeys = new ArrayList<>();
@@ -325,13 +300,17 @@ public class ChordNode {
 		int ninetyNinthPerc = computePercentile(99, numKeys);
 
 		// In order to computer AVG_keysxnode.txt
-		// System.out.println(this.SPACEDIMENSION + ";" + sortedKeys.size() + ";" + avg
-		// + ";" + firstPerc + ";" + ninetyNinthPerc);
-
+		System.out.println("Space Dimension; Num. of Keys; Mean Num. of Keys; 1st percentile; 99th percentile");
+		System.out.println(this.SPACEDIMENSION + ";" + sortedKeys.size() + ";" + avg + ";" + firstPerc + ";" + ninetyNinthPerc);
+		System.out.println();
+		
 		// In order to computer PDF_keysxnode.txt
-		/*
-		 * for(int i=0; i<numKeys.size(); i++ ) { System.out.println(numKeys.get(i)); }
-		 */
+		System.out.println("Num. of Keys per Node Distribution:");
+		System.out.print('[');
+		for(int i=0; i<numKeys.size(); i++ ) { System.out.print(numKeys.get(i) + ";"); }
+		System.out.print(']');
+		System.out.println();
+		System.out.println();
 	}
 
 	public int computePercentile(int percentile, ArrayList<Integer> list) {

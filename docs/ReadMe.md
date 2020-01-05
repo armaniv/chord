@@ -5,7 +5,6 @@ This project implements "Chord: A Scalable Peer-to-peer Lookup Protocol for Inte
 * Java 11 
 * [Eclipse IDE Version: 2019-06 (4.12.0)](https://www.eclipse.org/downloads/packages/release/2019-06)
 * [Repast Symphony Version: 2.7](https://repast.github.io/)
-* [gnuplot](http://www.gnuplot.info/) (OPTIONAL)
 
 ## Simulator configuration
 Our simulator is based on Repast Symphony, an agent-based modeling toolkit
@@ -51,7 +50,6 @@ Space Dimension; Num. of Keys; Mean Num. of Keys; 1st percentile; 99th percentil
 Num. of Keys per Node Distribution: [1065;1096;3224;3307;4776;5803;7669;10324;....]
 Mean Path Length: 6.7025779917745005
 Mean Num. of Timeouts: 0.003912127595546194
-```
 
 ## Reference
 

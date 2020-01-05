@@ -1,5 +1,5 @@
 # Chord
-This project implements "Chord: A Scalable Peer-to-peer Lookup Protocol for Internet Applications" algorithm. All the informations about protocol specifications can be found in the original paper. Moreover if you want to have a detailed view about the architecture of this implementation please read the report present in `/docs/Report`.
+This project implements "Chord: A Scalable Peer-to-peer Lookup Protocol for Internet Applications" algorithm. All the informations about protocol specifications can be found in the original paper. Moreover if you want to have a detailed view about the architecture of this implementation please read this [report](https://github.com/armaniv/chord/blob/master/docs/ImplementationReport.pdf).
 
 ## Requirements
 * Java 11 
@@ -25,7 +25,14 @@ or
 * Run the project
 
 ## Simulation parameters
-When the simulator is running, a GUI is showed to the user which presents some input boxes that can be used to modify the parameters of the simulation. These parameters are well described in the report.
+When the simulator is running, a GUI is showed to the user which presents some input boxes that can be used to modify the parameters of the simulation. Such parameters are:
+
+* Number of Nodes
+* Probability of single node crash
+* Number of Lookups per Stabilization Round
+* Number of Lookups/40 ticks
+
+More on the parameters in the [report](https://github.com/armaniv/chord/blob/master/docs/ImplementationReport.pdf).
 
 
 ## Test

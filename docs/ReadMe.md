@@ -19,8 +19,8 @@ features. Data for statistics is collected using Repast and analyzed with gnuplo
 
 or
  
-* Download the jar from [here](https://drive.google.com/file/d/1cFAPJimTmByIpYYuX9FHccJoei_pfYK7/view?usp=sharing)
-* Install the project following the procedure
+* Download the jar from [here](https://drive.google.com/open?id=12ssd23mF19UI7uIn_qaW6nmFgshuijEM)
+* Install the project following the guided procedure
 * Run the project
 
 ## Simulation parameters
